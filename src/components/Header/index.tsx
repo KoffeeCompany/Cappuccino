@@ -61,6 +61,12 @@ const HeaderFrame = styled.div<{ showBackground: boolean }>`
   `};
 `
 
+const HeaderLogo = styled.div<{ darkMode: boolean }>`
+  color: ${({ theme, darkMode }) => (darkMode ? 'white' : 'black')};
+  font-size: 24px;
+  font-weight: 500;
+`
+
 const HeaderControls = styled.div`
   display: flex;
   flex-direction: row;
@@ -164,6 +170,7 @@ const Title = styled.a`
   pointer-events: auto;
   justify-self: flex-start;
   margin-right: 12px;
+  text-decoration: none;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     justify-self: center;
   `};
@@ -264,28 +271,10 @@ export default function Header() {
         <UniBalanceContent setShowUniBalanceModal={setShowUniBalanceModal} />
       </Modal>
       <Title href=".">
-        <UniIcon>
-          <img width={'24px'} src={darkMode ? LogoDark : Logo} alt="logo" />
-        </UniIcon>
+        <HeaderLogo darkMode={darkMode}>Robusta</HeaderLogo>
       </Title>
-      <HeaderLinks>
-        <StyledNavLink
-          id={`pool-nav-link`}
-          to={'/options'}
-          isActive={(match, { pathname }) =>
-            Boolean(match) ||
-            pathname.startsWith('/add') ||
-            pathname.startsWith('/remove') ||
-            pathname.startsWith('/increase') ||
-            pathname.startsWith('/find')
-          }
-        >
-          <Trans>Options</Trans>
-        </StyledNavLink>
-        <StyledNavLink id={`swap-nav-link`} to={'/add/ETH'}>
-          <Trans>Trade</Trans>
-        </StyledNavLink>
-      </HeaderLinks>
+
+      <div></div>
 
       <HeaderControls>
         <NetworkCard />

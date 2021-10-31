@@ -17,6 +17,7 @@ import { RedirectDuplicateTokenIdsV2 } from './AddLiquidityV2/redirects'
 import CreateProposal from './CreateProposal'
 import Earn from './Earn'
 import Manage from './Earn/Manage'
+import Market from './Market'
 import MigrateV2 from './MigrateV2'
 import MigrateV2Pair from './MigrateV2/MigrateV2Pair'
 import Pool from './Pool'
@@ -85,6 +86,7 @@ export default function App() {
             <Polling />
             <TopLevelModals />
             <Switch>
+              <Route exact strict path="/market" component={Market} />
               <Route exact strict path="/vote" component={Vote} />
               <Route exact strict path="/vote/:governorIndex/:id" component={VotePage} />
               <Route exact strict path="/claim" component={OpenClaimAddressModalAndRedirectToSwap} />

@@ -242,18 +242,6 @@ export default function Menu() {
             default:
               return (
                 <MenuFlyout>
-                  <MenuItem href="https://github.com/Uv3Framework/uv3-options#readme">
-                    <div>
-                      <Trans>Learn</Trans>
-                    </div>
-                    <Info opacity={0.6} size={16} />
-                  </MenuItem>
-                  <MenuItem href="https://github.com/Uv3Framework/uv3-options">
-                    <div>
-                      <Trans>Code</Trans>
-                    </div>
-                    <Code opacity={0.6} size={16} />
-                  </MenuItem>
                   <ToggleMenuItem onClick={() => toggleDarkMode()}>
                     <div>{darkMode ? <Trans>Light Theme</Trans> : <Trans>Dark Theme</Trans>}</div>
                     {darkMode ? <Moon opacity={0.6} size={16} /> : <Sun opacity={0.6} size={16} />}
