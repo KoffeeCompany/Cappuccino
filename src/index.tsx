@@ -1,3 +1,4 @@
+import './components/OptionsGrid/table.css'
 import 'inter-ui'
 import '@reach/dialog/styles.css'
 import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
