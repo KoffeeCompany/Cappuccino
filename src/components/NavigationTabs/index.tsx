@@ -102,6 +102,7 @@ export function AddRemoveTabs({
   creating,
   defaultSlippage,
   positionID,
+  showBackLink,
   children,
 }: {
   adding: boolean
@@ -124,19 +125,23 @@ export function AddRemoveTabs({
   return (
     <Tabs>
       <RowBetween style={{ padding: '1rem 1rem 0 1rem' }}>
-        <StyledHistoryLink
-          to={poolLink}
-          onClick={() => {
-            if (adding) {
-              // not 100% sure both of these are needed
-              dispatch(resetMintState())
-              dispatch(resetMintV3State())
-            }
-          }}
-          flex={children ? '1' : undefined}
-        >
-          <StyledArrowLeft stroke={theme.text2} />
-        </StyledHistoryLink>
+        {showBackLink ? (
+          <StyledHistoryLink
+            to={poolLink}
+            onClick={() => {
+              if (adding) {
+                // not 100% sure both of these are needed
+                dispatch(resetMintState())
+                dispatch(resetMintV3State())
+              }
+            }}
+            flex={children ? '1' : undefined}
+          >
+            <StyledArrowLeft stroke={theme.text2} />
+          </StyledHistoryLink>
+        ) : (
+          ''
+        )}
         <TYPE.mediumHeader
           fontWeight={500}
           fontSize={20}

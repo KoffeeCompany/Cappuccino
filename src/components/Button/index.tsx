@@ -33,8 +33,9 @@ const Base = styled(RebassButton)<
   position: relative;
   z-index: 1;
   &:disabled {
-    cursor: auto;
     pointer-events: none;
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 
   will-change: transform;

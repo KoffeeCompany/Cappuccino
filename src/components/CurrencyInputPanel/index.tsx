@@ -164,6 +164,7 @@ interface CurrencyInputPanelProps {
   disableNonToken?: boolean
   renderBalance?: (amount: CurrencyAmount<Currency>) => ReactNode
   locked?: boolean
+  disabledToken?: boolean
 }
 
 export default function CurrencyInputPanel({
@@ -185,6 +186,7 @@ export default function CurrencyInputPanel({
   pair = null, // used for double token logo
   hideInput = false,
   locked = false,
+  disabledToken = false,
   ...rest
 }: CurrencyInputPanelProps) {
   const [modalOpen, setModalOpen] = useState(false)
@@ -219,6 +221,7 @@ export default function CurrencyInputPanel({
                 setModalOpen(true)
               }
             }}
+            disabled={disabledToken}
           >
             <Aligner>
               <RowFixed>
