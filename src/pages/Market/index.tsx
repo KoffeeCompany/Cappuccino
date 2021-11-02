@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/macro'
+import { useState, useCallback } from 'react'
 import { AutoColumn } from 'components/Column'
 import OptionsGrid from 'components/OptionsGrid'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
@@ -26,6 +27,7 @@ import {
 import { AddRemoveTabs } from 'components/NavigationTabs'
 import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-core'
 import OptionsDetail from 'components/OptionsDetail'
+import { Option } from 'entities/option'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -35,6 +37,17 @@ const Container = styled.div.attrs((props) => ({
 
 export default function Market() {
   const { account, chainId } = useActiveWeb3React()
+  // track and parse user input
+  const [callValue, setTypedCallValue] = useState({})
+  const [putValue, setTypedPutValue] = useState({})
+
+  const onCallSelect = useCallback((callRow: Option) => {
+    setTypedCallValue(callRow)
+  }, [])
+
+  const onPutSelect = useCallback((putRow: Option) => {
+    setTypedPutValue(putRow)
+  }, [])
 
   return (
     <>
@@ -64,19 +77,19 @@ export default function Market() {
           <ResponsiveTwoColumns wide={true} style={{ position: 'relative' }}>
             <AutoColumn gap="lg">
               <TYPE.mediumHeader style={{ flexShrink: 0 }}>Call</TYPE.mediumHeader>
-              <OptionsDetail />
+              <OptionsDetail option={callValue as Option} />
             </AutoColumn>
             <RightContainer gap="lg">
               <TYPE.mediumHeader style={{ flexShrink: 0 }}>Put</TYPE.mediumHeader>
-              <OptionsDetail />
+              <OptionsDetail option={putValue as Option} />
             </RightContainer>
           </ResponsiveTwoColumns>
           <ResponsiveTwoDetailColumns wide={true} style={{ position: 'relative', height: '100%' }}>
             <AutoColumn gap="lg">
-              <OptionsGrid />
+              <OptionsGrid onRowSelect={onCallSelect} />
             </AutoColumn>
             <RightContainer gap="lg">
-              <OptionsGrid />
+              <OptionsGrid onRowSelect={onPutSelect} />
             </RightContainer>
           </ResponsiveTwoDetailColumns>
         </Wrapper>

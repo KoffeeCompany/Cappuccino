@@ -12,8 +12,10 @@ import { Input as NumericalInput } from '../NumericalInput'
 import { Currency, CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'
 import { darken } from 'polished'
+import { Option } from '../../entities/option'
 import { ButtonGray } from '../Button'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
+import { useCurrency } from '../../hooks/Tokens'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -117,20 +119,23 @@ const CurrencySelect = styled(ButtonGray)<{ selected: boolean; hideInput?: boole
 
 interface OptionsDetailProps {
   onCurrencySelect?: (currency: Currency) => void
-  currency?: Currency | null
+  option?: Option | undefined
   pair?: Pair | null
 }
 
-export default function OptionsDetail({
-  onCurrencySelect,
-  currency,
-  pair = null, // used for double token logo
-  ...rest
-}: OptionsDetailProps) {
+export default function OptionsDetail({ onCurrencySelect, option, pair = null, ...rest }: OptionsDetailProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const { account, chainId } = useActiveWeb3React()
   // let user type value and only update parent value on blur
   const [localValue, setLocalValue] = useState('')
+  const currency = option?.lp ? option?.lp.split('/') : undefined
+  const currencyIdA = currency ? currency[0] : ''
+  const currencyIdB = currency ? currency[1] : ''
+  const baseCurrency = useCurrency(currencyIdA)
+  const currencyB = useCurrency(currencyIdB)
+  // prevent an error if they input ETH/WETH
+  const quoteCurrency =
+    baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
 
   return (
     <>
@@ -157,24 +162,27 @@ export default function OptionsDetail({
                       <span style={{ marginRight: '0.5rem' }}>
                         <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
                       </span>
-                    ) : currency ? (
-                      <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={currency} size={'24px'} />
+                    ) : baseCurrency ? (
+                      <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={baseCurrency} size={'24px'} />
                     ) : null}
                     {pair ? (
                       <StyledTokenName className="pair-name-container">
                         {pair?.token0.symbol}:{pair?.token1.symbol}
                       </StyledTokenName>
                     ) : (
-                      <StyledTokenName className="token-symbol-container" active={Boolean(currency && currency.symbol)}>
-                        {(currency && currency.symbol && currency.symbol.length > 20
-                          ? currency.symbol.slice(0, 4) +
+                      <StyledTokenName
+                        className="token-symbol-container"
+                        active={Boolean(baseCurrency && baseCurrency.symbol)}
+                      >
+                        {(baseCurrency && baseCurrency.symbol && baseCurrency.symbol.length > 20
+                          ? baseCurrency.symbol.slice(0, 4) +
                             '...' +
-                            currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
-                          : currency?.symbol) || <Trans>Select a token</Trans>}
+                            baseCurrency.symbol.slice(baseCurrency.symbol.length - 5, baseCurrency.symbol.length)
+                          : baseCurrency?.symbol) || <Trans>Select a token</Trans>}
                       </StyledTokenName>
                     )}
                   </RowFixed>
-                  {onCurrencySelect && <StyledDropDown selected={!!currency} />}
+                  {onCurrencySelect && <StyledDropDown selected={!!baseCurrency} />}
                 </Aligner>
               </CurrencySelect>
             </Container>
@@ -198,24 +206,27 @@ export default function OptionsDetail({
                       <span style={{ marginRight: '0.5rem' }}>
                         <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
                       </span>
-                    ) : currency ? (
-                      <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={currency} size={'24px'} />
+                    ) : quoteCurrency ? (
+                      <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={quoteCurrency} size={'24px'} />
                     ) : null}
                     {pair ? (
                       <StyledTokenName className="pair-name-container">
                         {pair?.token0.symbol}:{pair?.token1.symbol}
                       </StyledTokenName>
                     ) : (
-                      <StyledTokenName className="token-symbol-container" active={Boolean(currency && currency.symbol)}>
-                        {(currency && currency.symbol && currency.symbol.length > 20
-                          ? currency.symbol.slice(0, 4) +
+                      <StyledTokenName
+                        className="token-symbol-container"
+                        active={Boolean(quoteCurrency && quoteCurrency.symbol)}
+                      >
+                        {(quoteCurrency && quoteCurrency.symbol && quoteCurrency.symbol.length > 20
+                          ? quoteCurrency.symbol.slice(0, 4) +
                             '...' +
-                            currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
-                          : currency?.symbol) || <Trans>Select a token</Trans>}
+                            quoteCurrency.symbol.slice(quoteCurrency.symbol.length - 5, quoteCurrency.symbol.length)
+                          : quoteCurrency?.symbol) || <Trans>Select a token</Trans>}
                       </StyledTokenName>
                     )}
                   </RowFixed>
-                  {onCurrencySelect && <StyledDropDown selected={!!currency} />}
+                  {onCurrencySelect && <StyledDropDown selected={!!quoteCurrency} />}
                 </Aligner>
               </CurrencySelect>
             </Container>

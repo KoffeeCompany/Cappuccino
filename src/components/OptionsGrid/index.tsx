@@ -2,11 +2,16 @@ import { Trans } from '@lingui/macro'
 import { AgGridReact } from 'ag-grid-react'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useDarkModeManager } from 'state/user/hooks'
+import { Option } from '../../entities/option'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
 
-export default function OptionsGrid() {
+interface OptionsGridProps {
+  onRowSelect: (row: any) => void
+}
+
+export default function OptionsGrid({ onRowSelect, ...rest }: OptionsGridProps) {
   const { account, chainId } = useActiveWeb3React()
   const [darkMode] = useDarkModeManager()
 
@@ -73,7 +78,14 @@ export default function OptionsGrid() {
 
   return (
     <div style={{ height: '300px' }} className={darkMode ? 'ag-theme-balham-dark' : 'ag-theme-balham'}>
-      <AgGridReact columnDefs={state.columnDefs} rowData={state.rowData}></AgGridReact>
+      <AgGridReact
+        columnDefs={state.columnDefs}
+        rowData={state.rowData}
+        onRowClicked={(e) => {
+          console.log('row clicked', e.rowIndex)
+          onRowSelect(e.data as Option)
+        }}
+      ></AgGridReact>
     </div>
   )
 }
