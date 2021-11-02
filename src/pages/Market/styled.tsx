@@ -9,6 +9,7 @@ export const PageWrapper = styled(BodyWrapper)`
   min-width: 480px;
   width: 100%;
   padding: 10px;
+  margin-top: -40px;
 `
 
 export const Wrapper = styled.div`
@@ -69,6 +70,24 @@ export const ResponsiveTwoColumns = styled.div<{ wide: boolean }>`
 
     margin-top: 0;
   `};
+`
+export const ResponsiveTwoDetailColumns = styled.div<{ wide: boolean }>`
+  display: grid;
+  grid-column-gap: 5px;
+  grid-row-gap: 15px;
+  grid-template-columns: ${({ wide }) => (wide ? '1fr 1fr' : '1fr')};
+  grid-template-rows: max-content;
+  grid-auto-flow: row;
+
+  padding-top: 20px;
+
+  border-top: 1px solid ${({ theme }) => theme.bg2};
+
+  ${({ theme }) => theme.mediaWidth.upToMedium`
+  grid-template-columns: 1fr;
+
+  margin-top: 0;
+`};
 `
 
 export const RightContainer = styled(AutoColumn)`

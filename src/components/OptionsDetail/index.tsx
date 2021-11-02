@@ -134,7 +134,7 @@ export default function OptionsDetail({
 
   return (
     <>
-      <AutoColumn gap="md">
+      <AutoColumn gap="sm">
         <RowBetween>
           <ResponsiveTwoColumns wide={true} style={{ position: 'relative' }}>
             <Container>
@@ -313,6 +313,39 @@ export default function OptionsDetail({
               />
             </Container>
           </ResponsiveThreeColumns>
+        </RowBetween>
+
+        <RowBetween>
+          <ResponsiveTwoColumns wide={true} style={{ position: 'relative' }}>
+            <Container>
+              <InputTitle fontSize={13} textAlign="left">
+                <Trans>Delta</Trans>
+              </InputTitle>
+              <StyledInput
+                className="rate-input-0"
+                value={localValue}
+                fontSize="20px"
+                disabled={true}
+                onUserInput={(val) => {
+                  setLocalValue(val)
+                }}
+              />
+            </Container>
+            <Container>
+              <InputTitle fontSize={13} textAlign="left">
+                <Trans>Beta</Trans>
+              </InputTitle>
+              <StyledInput
+                className="rate-input-0"
+                value={localValue}
+                fontSize="20px"
+                disabled={true}
+                onUserInput={(val) => {
+                  setLocalValue(val)
+                }}
+              />
+            </Container>
+          </ResponsiveTwoColumns>
         </RowBetween>
       </AutoColumn>
     </>

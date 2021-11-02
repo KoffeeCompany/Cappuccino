@@ -1,104 +1,79 @@
 import { Trans } from '@lingui/macro'
+import { AgGridReact } from 'ag-grid-react'
 import { useActiveWeb3React } from 'hooks/web3'
-import { Wrapper } from 'pages/Market/styled'
-import { Table } from 'reactstrap'
-import styled from 'styled-components/macro'
-
-const Container = styled(Wrapper)`
-  font-size: 13px;
-  height: 600px;
-`
-
-const TableContainer = styled.div`
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  overflow-x: auto;
-`
+import { useDarkModeManager } from 'state/user/hooks'
+import 'ag-grid-community/dist/styles/ag-grid.css'
+import 'ag-grid-community/dist/styles/ag-theme-balham.css'
+import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
 
 export default function OptionsGrid() {
   const { account, chainId } = useActiveWeb3React()
+  const [darkMode] = useDarkModeManager()
+
+  const state = {
+    columnDefs: [
+      { headerName: 'LP', field: 'lp', flex: 1 },
+      { headerName: 'Lower tick', field: 'lowerTick', flex: 1 },
+      { headerName: 'Upper tick', field: 'upperTick', flex: 1 },
+      { headerName: 'Position size', field: 'positionSize', flex: 1 },
+      { headerName: 'Maturity', field: 'maturity', flex: 1 },
+      { headerName: 'Strike', field: 'strike', flex: 1 },
+      { headerName: 'Current price', field: 'currentPrice', flex: 1 },
+      { headerName: 'Token 0', field: 'token0', flex: 1 },
+      { headerName: 'Token 1', field: 'token1', flex: 1 },
+      { headerName: 'Value (ETH)', field: 'value', flex: 1 },
+      { headerName: 'Delta', field: 'delta', flex: 1 },
+      { headerName: 'Beta', field: 'beta', flex: 1 },
+    ],
+    rowData: [
+      {
+        lp: 'ETH/Dai',
+        lowerTick: 1500,
+        upperTick: 2600,
+        positionSize: 1,
+        maturity: '7D',
+        strike: 2300,
+        currentPrice: 1990,
+        token0: 0.45,
+        token1: 947.06,
+        value: 0.93,
+        delta: 0.4518,
+        beta: 1,
+      },
+      {
+        lp: 'ETH/WBTC',
+        lowerTick: 0.05,
+        upperTick: 0.1,
+        positionSize: 1,
+        maturity: '10D',
+        strike: 0.07,
+        currentPrice: 0.06,
+        token0: 0.6841,
+        token1: 0.0174,
+        value: 0.9708,
+        delta: 0.6841,
+        beta: 0.545,
+      },
+      {
+        lp: 'ETH/UNI',
+        lowerTick: 50,
+        upperTick: 175,
+        positionSize: 1,
+        maturity: '1M',
+        strike: 120,
+        currentPrice: 105.5143,
+        token0: 0.33,
+        token1: 48.6256,
+        value: 0.79,
+        delta: 0.33,
+        beta: 0.912,
+      },
+    ],
+  }
 
   return (
-    <Container>
-      <TableContainer>
-        <Table hover>
-          <thead>
-            <tr>
-              <th>LP</th>
-              <th>
-                <Trans>Low. tick</Trans>
-              </th>
-              <th>
-                <Trans>Up. tick</Trans>
-              </th>
-              <th>
-                <Trans>Pos. size</Trans>
-              </th>
-              <th>
-                <Trans>Mat.</Trans>
-              </th>
-              <th>
-                <Trans>K</Trans>
-              </th>
-              <th>
-                <Trans>Cur. price</Trans>
-              </th>
-              <th>Tok. 0</th>
-              <th>Tok. 1</th>
-              <th>
-                <Trans>Value</Trans>
-              </th>
-              <th>Delta</th>
-              <th>Beta</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">ETH/Dai</th>
-              <td>1500</td>
-              <td>2600</td>
-              <td>1</td>
-              <td>7D</td>
-              <td>2300</td>
-              <td>1990</td>
-              <td>0.45</td>
-              <td>947.06</td>
-              <td>0.93</td>
-              <td>0.4518</td>
-              <td>1</td>
-            </tr>
-            <tr>
-              <th scope="row">ETH/WBTC</th>
-              <td>0.05</td>
-              <td>0.1</td>
-              <td>1</td>
-              <td>10D</td>
-              <td>0.07</td>
-              <td>0.06</td>
-              <td>0.6841</td>
-              <td>0.0174</td>
-              <td>0.9708</td>
-              <td>0.6841</td>
-              <td>0.545</td>
-            </tr>
-            <tr>
-              <th scope="row">ETH/UNI</th>
-              <td>50</td>
-              <td>175</td>
-              <td>1</td>
-              <td>1M</td>
-              <td>120</td>
-              <td>105.5143</td>
-              <td>0.33</td>
-              <td>48.6256</td>
-              <td>0.79</td>
-              <td>0.33</td>
-              <td>0.912</td>
-            </tr>
-          </tbody>
-        </Table>
-      </TableContainer>
-    </Container>
+    <div style={{ height: '300px' }} className={darkMode ? 'ag-theme-balham-dark' : 'ag-theme-balham'}>
+      <AgGridReact columnDefs={state.columnDefs} rowData={state.rowData}></AgGridReact>
+    </div>
   )
 }

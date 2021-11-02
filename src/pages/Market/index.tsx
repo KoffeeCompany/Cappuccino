@@ -15,6 +15,7 @@ import {
   Wrapper,
   ScrollablePage,
   ResponsiveTwoColumns,
+  ResponsiveTwoDetailColumns,
   PageWrapper,
   StackedContainer,
   StackedItem,
@@ -62,16 +63,22 @@ export default function Market() {
         <Wrapper>
           <ResponsiveTwoColumns wide={true} style={{ position: 'relative' }}>
             <AutoColumn gap="lg">
+              <TYPE.mediumHeader style={{ flexShrink: 0 }}>Call</TYPE.mediumHeader>
               <OptionsDetail />
-              <TYPE.mediumHeader style={{ margin: '0.5rem 0.5rem 0.5rem 0', flexShrink: 0 }}>Call</TYPE.mediumHeader>
+            </AutoColumn>
+            <RightContainer gap="lg">
+              <TYPE.mediumHeader style={{ flexShrink: 0 }}>Put</TYPE.mediumHeader>
+              <OptionsDetail />
+            </RightContainer>
+          </ResponsiveTwoColumns>
+          <ResponsiveTwoDetailColumns wide={true} style={{ position: 'relative', height: '100%' }}>
+            <AutoColumn gap="lg">
               <OptionsGrid />
             </AutoColumn>
             <RightContainer gap="lg">
-              <OptionsDetail />
-              <TYPE.mediumHeader style={{ margin: '0.5rem 0.5rem 0.5rem 0', flexShrink: 0 }}>Put</TYPE.mediumHeader>
               <OptionsGrid />
             </RightContainer>
-          </ResponsiveTwoColumns>
+          </ResponsiveTwoDetailColumns>
         </Wrapper>
       </PageWrapper>
       <SwitchLocaleLink />
