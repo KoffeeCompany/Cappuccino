@@ -13,11 +13,12 @@ import { Currency, CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'
 import { darken } from 'polished'
 import { Option } from '../../entities/option'
-import { ButtonError, ButtonGray, ButtonPrimary } from '../Button'
+import { ButtonError, ButtonGray, ButtonLight, ButtonPrimary } from '../Button'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { useCurrency, useAllTokens } from '../../hooks/Tokens'
 import { filterTokens, useSortedTokensByQuery } from '../SearchModal/filtering'
 import { useTokenComparator } from '../SearchModal/sorting'
+import { useWalletModalToggle } from '../../state/application/hooks'
 import { Link } from 'react-router-dom'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
@@ -129,6 +130,7 @@ interface OptionsDetailProps {
 export default function OptionsDetail({ onCurrencySelect, option, pair = null, ...rest }: OptionsDetailProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const { account, chainId } = useActiveWeb3React()
+  const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
 
   const currency = option?.lp ? option?.lp.split('/') : undefined
   const currencyIdA = currency ? currency[0] : '-'
@@ -153,6 +155,23 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
   // prevent an error if they input ETH/WETH
   const quoteCurrency =
     baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
+
+  const Buttons = () =>
+    !account ? (
+      <ButtonLight onClick={toggleWalletModal} $borderRadius="12px" padding={'12px'}>
+        <Trans>Connect to a wallet</Trans>
+      </ButtonLight>
+    ) : (
+      <ButtonPrimary
+        as={Link}
+        to="/add/ETH"
+        style={{ backgroundColor: '#1abb96', width: '100%', borderRadius: '8px' }}
+        padding="8px"
+        margin="20px"
+      >
+        <Trans>Buy</Trans>
+      </ButtonPrimary>
+    )
 
   return (
     <>
@@ -374,15 +393,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               />
             </Container>
             <Container>
-              <ButtonPrimary
-                as={Link}
-                to="/add/ETH"
-                style={{ backgroundColor: '#1abb96', width: '100%', borderRadius: '8px' }}
-                padding="8px"
-                margin="20px"
-              >
-                <Trans>Buy</Trans>
-              </ButtonPrimary>
+              <Buttons />
             </Container>
           </ResponsiveThreeColumns>
         </RowBetween>
