@@ -28,6 +28,7 @@ import {
   typeLeftRangeInput,
   typeRightRangeInput,
   setFullRange,
+  optionValueInput,
 } from './actions'
 import { tryParseTick } from './utils'
 import { usePool } from 'hooks/usePools'
@@ -43,6 +44,7 @@ export function useV3MintActionHandlers(noLiquidity: boolean | undefined): {
   onLeftRangeInput: (typedValue: string) => void
   onRightRangeInput: (typedValue: string) => void
   onStartPriceInput: (typedValue: string) => void
+  onOptionValueInput: (typedValue: string) => void
 } {
   const dispatch = useAppDispatch()
 
@@ -81,12 +83,20 @@ export function useV3MintActionHandlers(noLiquidity: boolean | undefined): {
     [dispatch]
   )
 
+  const onOptionValueInput = useCallback(
+    (typedValue: string) => {
+      dispatch(optionValueInput({ field: Field.CURRENCY_A, typedValue }))
+    },
+    [dispatch]
+  )
+
   return {
     onFieldAInput,
     onFieldBInput,
     onLeftRangeInput,
     onRightRangeInput,
     onStartPriceInput,
+    onOptionValueInput
   }
 }
 

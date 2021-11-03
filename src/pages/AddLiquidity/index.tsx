@@ -154,7 +154,7 @@ export default function AddLiquidity({
     existingPosition
   )
 
-  const { onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onStartPriceInput } =
+  const { onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onStartPriceInput, onOptionValueInput } =
     useV3MintActionHandlers(noLiquidity)
 
   const isValid = !errorMessage && !invalidRange
@@ -461,8 +461,9 @@ export default function AddLiquidity({
     onFieldBInput('')
     onLeftRangeInput('')
     onRightRangeInput('')
+    onOptionValueInput('')
     history.push(`/add`)
-  }, [history, onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput])
+  }, [history, onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onOptionValueInput])
 
   // get value and prices at ticks
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
@@ -473,7 +474,6 @@ export default function AddLiquidity({
 
   const setCoveredCallRange = (ticks: number) => { setToPrice(ticks) }
   const setProtectedPutRange = (ticks: number) => { setToPrice(ticks) }
-  const setStrangleRange = (ticks: number) => { setRange(ticks) }
 
   const [tickRangeValue, setTickRangeValue] = useState<number | string | Array<number | string>>(30);
 
@@ -506,7 +506,7 @@ export default function AddLiquidity({
       </ButtonPrimary>
     ) : !account ? (
       <ButtonLight onClick={toggleWalletModal} $borderRadius="12px" padding={'12px'}>
-        <Trans>Connect wallet</Trans>
+        <Trans>Connect to a wallet</Trans>
       </ButtonLight>
     ) : (
       <AutoColumn gap={'md'}>
@@ -749,6 +749,25 @@ export default function AddLiquidity({
                     />
                   </AutoColumn>
                 </DynamicSection>
+                <DynamicSection style={{ marginTop: '10px'}}>
+                  <AutoColumn gap="md">
+                    <TYPE.label>
+                      <Trans>Option value</Trans>
+                    </TYPE.label>
+                    <CurrencyInputPanel
+                      value={formattedAmounts[Field.CURRENCY_A]}
+                      onUserInput={onOptionValueInput}
+                      onMax={() => {
+                        onOptionValueInput(maxAmounts[Field.CURRENCY_A]?.toExact() ?? '')
+                      }}
+                      showMaxButton={!atMaxAmounts[Field.CURRENCY_A]}
+                      fiatValue={usdcValues[Field.CURRENCY_A]}
+                      currency={currencies[Field.CURRENCY_A]}
+                      id="add-liquidity-input-tokenb"
+                      showCommonBases
+                    />
+                  </AutoColumn>
+                </DynamicSection>
               </div>
 
               {!hasExistingPosition ? (
@@ -914,31 +933,9 @@ export default function AddLiquidity({
                                     }}
                                   /> 
                                 }
-
-                                <Strangle
-                                  setStrangleRange={() => {
-                                    setStrangleRange(typeof tickRangeValue === 'number' ? tickRangeValue : 0)
-                                  }}
-                                />
                               </CTASection2>
                             )}
                           </AutoColumn>
-
-                          <TYPE.main fontWeight={500} paddingTop="15px" paddingBottom ="15px" fontSize={12} color="text1">
-                            Set Tick Range:
-                          </TYPE.main>
-
-                          {/* @TODO: need to fix prices with invert so they wrk properly */}
-                          <Slider
-                            value={typeof tickRangeValue === 'number' ? tickRangeValue : 0}
-                            onChange={handleSliderChange}
-                            valueLabelDisplay="auto"
-                            min={1}
-                            max={250}
-                            defaultValue={50} 
-                            step={1}
-                          />
-
                         </StackedItem>
 
                         {showCapitalEfficiencyWarning && (
