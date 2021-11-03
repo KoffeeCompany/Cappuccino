@@ -13,9 +13,11 @@ import { Currency, CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'
 import { darken } from 'polished'
 import { Option } from '../../entities/option'
-import { ButtonGray } from '../Button'
+import { ButtonError, ButtonGray, ButtonPrimary } from '../Button'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { useCurrency } from '../../hooks/Tokens'
+import { Link } from 'react-router-dom'
+import { useDarkModeManager } from 'state/user/hooks'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -126,8 +128,6 @@ interface OptionsDetailProps {
 export default function OptionsDetail({ onCurrencySelect, option, pair = null, ...rest }: OptionsDetailProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const { account, chainId } = useActiveWeb3React()
-  // let user type value and only update parent value on blur
-  const [localValue, setLocalValue] = useState('')
   const currency = option?.lp ? option?.lp.split('/') : undefined
   const currencyIdA = currency ? currency[0] : ''
   const currencyIdB = currency ? currency[1] : ''
@@ -136,6 +136,8 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
   // prevent an error if they input ETH/WETH
   const quoteCurrency =
     baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
+
+  const [darkMode, toggleDarkMode] = useDarkModeManager()
 
   return (
     <>
@@ -147,7 +149,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 <Trans>Token 0</Trans>
               </InputTitle>
               <CurrencySelect
-                selected={!!currency}
+                selected={!!baseCurrency}
                 hideInput={true}
                 className="open-currency-select-button"
                 onClick={() => {
@@ -191,7 +193,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 <Trans>Token 1</Trans>
               </InputTitle>
               <CurrencySelect
-                selected={!!currency}
+                selected={!!quoteCurrency}
                 hideInput={true}
                 className="open-currency-select-button"
                 onClick={() => {
@@ -240,11 +242,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.lowerTick ? option?.lowerTick : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
@@ -254,11 +256,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.upperTick ? option?.upperTick : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
@@ -268,11 +270,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.maturity ? option?.maturity : ''}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
@@ -287,11 +289,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.strike ? option?.strike : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
@@ -301,11 +303,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.currentPrice ? option?.currentPrice : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
@@ -315,11 +317,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.value ? option?.value : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
@@ -327,18 +329,18 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
         </RowBetween>
 
         <RowBetween>
-          <ResponsiveTwoColumns wide={true} style={{ position: 'relative' }}>
+          <ResponsiveThreeColumns wide={true} style={{ position: 'relative' }}>
             <Container>
               <InputTitle fontSize={13} textAlign="left">
                 <Trans>Delta</Trans>
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.delta ? option?.delta : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
@@ -348,15 +350,26 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={localValue}
+                value={option?.beta ? option?.beta : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={(val) => {
-                  setLocalValue(val)
+                  //
                 }}
               />
             </Container>
-          </ResponsiveTwoColumns>
+            <Container>
+              <ButtonPrimary
+                as={Link}
+                to="/add/ETH"
+                style={{ backgroundColor: '#1abb96', width: '100%', borderRadius: '8px' }}
+                padding="8px"
+                margin="20px"
+              >
+                <Trans>Buy</Trans>
+              </ButtonPrimary>
+            </Container>
+          </ResponsiveThreeColumns>
         </RowBetween>
       </AutoColumn>
     </>
