@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, ReactNode } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Trans } from '@lingui/macro'
 import { AutoColumn } from 'components/Column'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
@@ -15,9 +15,10 @@ import { darken } from 'polished'
 import { Option } from '../../entities/option'
 import { ButtonError, ButtonGray, ButtonPrimary } from '../Button'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
-import { useCurrency } from '../../hooks/Tokens'
+import { useCurrency, useAllTokens } from '../../hooks/Tokens'
+import { filterTokens, useSortedTokensByQuery } from '../SearchModal/filtering'
+import { useTokenComparator } from '../SearchModal/sorting'
 import { Link } from 'react-router-dom'
-import { useDarkModeManager } from 'state/user/hooks'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -128,16 +129,30 @@ interface OptionsDetailProps {
 export default function OptionsDetail({ onCurrencySelect, option, pair = null, ...rest }: OptionsDetailProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const { account, chainId } = useActiveWeb3React()
+
   const currency = option?.lp ? option?.lp.split('/') : undefined
-  const currencyIdA = currency ? currency[0] : ''
-  const currencyIdB = currency ? currency[1] : ''
+  const currencyIdA = currency ? currency[0] : '-'
+  const currencyIdB = currency ? currency[1] : '-'
   const baseCurrency = useCurrency(currencyIdA)
-  const currencyB = useCurrency(currencyIdB)
+
+  const debouncedQuery = currencyIdB
+  const [invertSearchOrder] = useState<boolean>(false)
+
+  const tokenComparator = useTokenComparator(invertSearchOrder)
+  const allTokens = useAllTokens()
+  const filteredTokens: Token[] = useMemo(() => {
+    return filterTokens(Object.values(allTokens), debouncedQuery)
+  }, [allTokens, debouncedQuery])
+
+  const sortedTokens: Token[] = useMemo(() => {
+    return filteredTokens.sort(tokenComparator)
+  }, [filteredTokens, tokenComparator])
+
+  const filteredSortedTokens = useSortedTokensByQuery(sortedTokens, debouncedQuery)
+  const currencyB = filteredSortedTokens.length > 0 ? filteredSortedTokens[0] : undefined
   // prevent an error if they input ETH/WETH
   const quoteCurrency =
     baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
-
-  const [darkMode, toggleDarkMode] = useDarkModeManager()
 
   return (
     <>

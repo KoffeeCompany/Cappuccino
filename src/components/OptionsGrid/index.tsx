@@ -82,7 +82,6 @@ export default function OptionsGrid({ onRowSelect, ...rest }: OptionsGridProps) 
         columnDefs={state.columnDefs}
         rowData={state.rowData}
         onRowClicked={(e) => {
-          console.log('row clicked', e.rowIndex)
           onRowSelect(e.data as Option)
         }}
       ></AgGridReact>
