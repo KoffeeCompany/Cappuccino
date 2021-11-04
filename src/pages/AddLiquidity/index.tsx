@@ -125,7 +125,7 @@ export default function AddLiquidity({
     baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
 
   // mint state
-  const { independentField, typedValue, startPriceTypedValue } = useV3MintState()
+  const { independentField, typedValue, startPriceTypedValue, optionValue } = useV3MintState()
 
   const {
     pool,
@@ -134,6 +134,7 @@ export default function AddLiquidity({
     price,
     pricesAtTicks,
     parsedAmounts,
+    parsedOptionAmounts,
     currencyBalances,
     position,
     noLiquidity,
@@ -163,11 +164,6 @@ export default function AddLiquidity({
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
   const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
 
-  function valuetext(value: number) {   
-    console.log(value)
-    return `${value}`;
-  }
-
   // capital efficiency warning
   const [showCapitalEfficiencyWarning, setShowCapitalEfficiencyWarning] = useState(false)
 
@@ -182,11 +178,21 @@ export default function AddLiquidity({
   const formattedAmounts = {
     [independentField]: typedValue,
     [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? '',
+  }  
+  
+  const formattedOptionAmounts = {
+    [independentField]: optionValue,
+    [dependentField]: parsedOptionAmounts[dependentField]?.toSignificant(6) ?? '',
   }
 
   const usdcValues = {
     [Field.CURRENCY_A]: useUSDCValue(parsedAmounts[Field.CURRENCY_A]),
     [Field.CURRENCY_B]: useUSDCValue(parsedAmounts[Field.CURRENCY_B]),
+  }
+  
+  const usdcOptionValues = {
+    [Field.CURRENCY_A]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_A]),
+    [Field.CURRENCY_B]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_B]),
   }
 
   // get the max amounts user can add
@@ -749,21 +755,22 @@ export default function AddLiquidity({
                     />
                   </AutoColumn>
                 </DynamicSection>
-                <DynamicSection style={{ marginTop: '10px'}}>
+                <DynamicSection style={{ marginTop: '10px'}} disabled={tickLower === undefined || tickUpper === undefined || invalidPool || invalidRange}>
                   <AutoColumn gap="md">
                     <TYPE.label>
                       <Trans>Option value</Trans>
                     </TYPE.label>
                     <CurrencyInputPanel
-                      value={formattedAmounts[Field.CURRENCY_A]}
+                      value={formattedOptionAmounts[Field.CURRENCY_A]}
                       onUserInput={onOptionValueInput}
                       onMax={() => {
                         onOptionValueInput(maxAmounts[Field.CURRENCY_A]?.toExact() ?? '')
                       }}
-                      showMaxButton={!atMaxAmounts[Field.CURRENCY_A]}
-                      fiatValue={usdcValues[Field.CURRENCY_A]}
+                      showMaxButton={false}
+                      fiatValue={usdcOptionValues[Field.CURRENCY_A]}
                       currency={currencies[Field.CURRENCY_A]}
                       id="add-liquidity-input-tokenb"
+                      hideBalance={true}
                       showCommonBases
                     />
                   </AutoColumn>

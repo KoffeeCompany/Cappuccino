@@ -119,6 +119,7 @@ export function useV3DerivedMintInfo(
   currencyBalances: { [field in Field]?: CurrencyAmount<Currency> }
   dependentField: Field
   parsedAmounts: { [field in Field]?: CurrencyAmount<Currency> }
+  parsedOptionAmounts: { [field in Field]?: CurrencyAmount<Currency> }
   position: Position | undefined
   noLiquidity?: boolean
   errorMessage?: string
@@ -365,6 +366,14 @@ export function useV3DerivedMintInfo(
     }
   }, [dependentAmount, independentAmount, independentField])
 
+  const parsedOptionAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined } = useMemo(() => {
+    return {
+      [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentAmount : dependentAmount,
+      [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentAmount : independentAmount,
+    }
+  }, [dependentAmount, independentAmount, independentField])
+  
+
   // single deposit only if price is out of range
   const deposit0Disabled = Boolean(
     typeof tickUpper === 'number' && poolForPosition && poolForPosition.tickCurrent >= tickUpper
@@ -452,6 +461,14 @@ export function useV3DerivedMintInfo(
     errorMessage = errorMessage ?? t`Enter an amount`
   }
 
+  if (
+    !parsedOptionAmounts[Field.CURRENCY_A]
+  ) {
+    errorMessage = errorMessage ?? t`Enter an amount`
+  }
+
+  
+
   const { [Field.CURRENCY_A]: currencyAAmount, [Field.CURRENCY_B]: currencyBAmount } = parsedAmounts
 
   if (currencyAAmount && currencyBalances?.[Field.CURRENCY_A]?.lessThan(currencyAAmount)) {
@@ -471,6 +488,7 @@ export function useV3DerivedMintInfo(
     poolState,
     currencyBalances,
     parsedAmounts,
+    parsedOptionAmounts,
     ticks,
     price,
     pricesAtTicks,
