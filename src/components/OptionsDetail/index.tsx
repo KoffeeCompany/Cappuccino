@@ -1,19 +1,19 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Trans } from '@lingui/macro'
 import { AutoColumn } from 'components/Column'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { RowBetween, RowFixed } from '../Row'
 import { useActiveWeb3React } from 'hooks/web3'
 import styled from 'styled-components/macro'
-import { ExternalLink, TYPE } from 'theme'
+import { TYPE } from 'theme'
 import DoubleCurrencyLogo from '../DoubleLogo'
 import CurrencyLogo from '../CurrencyLogo'
 import { Input as NumericalInput } from '../NumericalInput'
-import { Currency, CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
+import { Currency, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'
 import { darken } from 'polished'
 import { Option } from '../../entities/option'
-import { ButtonError, ButtonGray, ButtonLight, ButtonPrimary } from '../Button'
+import { ButtonGray, ButtonLight, ButtonPrimary } from '../Button'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { useCurrency, useAllTokens } from '../../hooks/Tokens'
 import { filterTokens, useSortedTokensByQuery } from '../SearchModal/filtering'
@@ -127,9 +127,10 @@ interface OptionsDetailProps {
   pair?: Pair | null
 }
 
-export default function OptionsDetail({ onCurrencySelect, option, pair = null, ...rest }: OptionsDetailProps) {
+export default function OptionsDetail({ onCurrencySelect, option, pair = null }: OptionsDetailProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [modalOpen, setModalOpen] = useState(false)
-  const { account, chainId } = useActiveWeb3React()
+  const { account } = useActiveWeb3React()
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
 
   const currency = option?.lp ? option?.lp.split('/') : undefined
@@ -279,7 +280,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.lowerTick ? option?.lowerTick : 0}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />
@@ -293,7 +294,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.upperTick ? option?.upperTick : 0}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />
@@ -307,7 +308,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.maturity ? option?.maturity : ''}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />
@@ -326,7 +327,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.strike ? option?.strike : 0}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />
@@ -340,7 +341,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.currentPrice ? option?.currentPrice : 0}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />
@@ -354,7 +355,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.value ? option?.value : 0}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />
@@ -373,7 +374,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.delta ? option?.delta : 0}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />
@@ -387,7 +388,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null, .
                 value={option?.beta ? option?.beta : 0}
                 fontSize="20px"
                 disabled={true}
-                onUserInput={(val) => {
+                onUserInput={() => {
                   //
                 }}
               />

@@ -3,6 +3,7 @@ import { useAllOptionIntentionsQuery } from 'state/data/enhanced'
 import ms from 'ms.macro'
 import { OptionType } from 'state/options/slice'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useOptionIntentions(optionType: OptionType) {
   const { isLoading, isError, error, isUninitialized, data } = useAllOptionIntentionsQuery(
     {

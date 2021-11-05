@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
 import { TransactionResponse } from '@ethersproject/providers'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-core'
 import { AlertTriangle } from 'react-feather'
 import ReactGA from 'react-ga'
@@ -27,7 +28,7 @@ import { useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { useWalletModalToggle } from '../../state/application/hooks'
-import { Field, Bound, setFullRange } from '../../state/mint/v3/actions'
+import { Field, Bound } from '../../state/mint/v3/actions'
 import { AddLiquidityNetworkAlert } from 'components/NetworkAlert/AddLiquidityNetworkAlert'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '../../state/user/hooks'
@@ -63,7 +64,7 @@ import { useDerivedPositionInfo } from 'hooks/useDerivedPositionInfo'
 import { PositionPreview } from 'components/PositionPreview'
 import FeeSelector from 'components/FeeSelector'
 import StrikeSelector from 'components/StrikeSelector'
-import CoveredCall, { ProtectedPut, Strangle, Straddle } from 'components/StrikeSelector/PresetsButtons'
+import CoveredCall, { ProtectedPut} from 'components/StrikeSelector/PresetsButtons'
 import RateToggle from 'components/RateToggle'
 import { BigNumber } from '@ethersproject/bignumber'
 import { AddRemoveTabs } from 'components/NavigationTabs'
@@ -74,9 +75,6 @@ import { SupportedChainId } from 'constants/chains'
 import OptimismDowntimeWarning from 'components/OptimismDowntimeWarning'
 import { CHAIN_INFO } from '../../constants/chains'
 import styled from 'styled-components/macro'
-import { ConsoleView } from 'react-device-detect'
-
-import Slider from '@material-ui/core/Slider';
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -475,17 +473,11 @@ export default function AddLiquidity({
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
 
-  const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice, setRange } =
+  const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice } =
     useRangeHopCallbacks(baseCurrency ?? undefined, quoteCurrency ?? undefined, feeAmount, tickLower, tickUpper, pool)
 
   const setCoveredCallRange = (ticks: number) => { setToPrice(ticks) }
   const setProtectedPutRange = (ticks: number) => { setToPrice(ticks) }
-
-  const [tickRangeValue, setTickRangeValue] = useState<number | string | Array<number | string>>(30);
-
-  const handleSliderChange = (event: any, newValue: number | number[]) => {
-    setTickRangeValue(newValue);
-  };
 
   // we need an existence check on parsed amounts for single-asset deposits
   const showApprovalA =

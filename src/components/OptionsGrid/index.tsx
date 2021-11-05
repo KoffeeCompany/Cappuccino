@@ -1,6 +1,4 @@
-import { Trans } from '@lingui/macro'
 import { AgGridReact } from 'ag-grid-react'
-import { useActiveWeb3React } from 'hooks/web3'
 import { useDarkModeManager } from 'state/user/hooks'
 import { Option } from '../../entities/option'
 import { usePutOptionIntentions, useCallOptionIntentions } from './hooks'
@@ -12,14 +10,18 @@ interface OptionsGridProps {
   onRowSelect: (row: any) => void
 }
 
-export default function OptionsGrid({ onRowSelect, ...rest }: OptionsGridProps) {
-  const { account, chainId } = useActiveWeb3React()
+export default function OptionsGrid({ onRowSelect }: OptionsGridProps) {
   const [darkMode] = useDarkModeManager()
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isLoading: putIsLoading,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isUninitialized: putIsUninitialized,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isError: putIsError,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     error: putError,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     formattedData: putData,
   } = usePutOptionIntentions()
   const {

@@ -590,6 +590,7 @@ export function useRangeHopCallbacks(
       dispatch(typeRightRangeInput({ typedValue: rightTickPrice.toFixed(6) }))
     }
     return ''
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseToken, quoteToken, tickUpper, feeAmount, pool])
 
 
@@ -610,6 +611,7 @@ export function useRangeHopCallbacks(
       // tickUpper = rightTickPrice.toFixed(6) / 2
     }
     return ''
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseToken, quoteToken, tickUpper, feeAmount, pool])
 
   return { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice, setRange }

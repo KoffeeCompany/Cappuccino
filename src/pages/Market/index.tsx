@@ -3,40 +3,26 @@ import { useState, useCallback } from 'react'
 import { AutoColumn } from 'components/Column'
 import OptionsGrid from 'components/OptionsGrid'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
-import { useActiveWeb3React } from 'hooks/web3'
-import styled from 'styled-components/macro'
-import { ExternalLink, TYPE } from 'theme'
+import { TYPE } from 'theme'
 import { Link } from 'react-router-dom'
-import Row, { RowBetween, RowFixed, AutoRow } from '../../components/Row'
-import { ButtonError, ButtonLight, ButtonPrimary, ButtonText, ButtonYellow } from '../../components/Button'
+import Row from '../../components/Row'
+import { ButtonPrimary } from '../../components/Button'
 import {
-  DynamicSection,
-  CurrencyDropdown,
-  StyledInput,
   Wrapper,
-  ScrollablePage,
   ResponsiveTwoColumns,
   ResponsiveTwoDetailColumns,
   PageWrapper,
-  StackedContainer,
-  StackedItem,
   RightContainer,
   MediumOnly,
-  HideMedium,
 } from './styled'
 import { AddRemoveTabs } from 'components/NavigationTabs'
-import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-core'
+import { Percent } from '@uniswap/sdk-core'
 import OptionsDetail from 'components/OptionsDetail'
 import { Option } from 'entities/option'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
-const Container = styled.div.attrs((props) => ({
-  className: props.className,
-}))
-
 export default function Market() {
-  const { account, chainId } = useActiveWeb3React()
   // track and parse user input
   const [callValue, setTypedCallValue] = useState({})
   const [putValue, setTypedPutValue] = useState({})

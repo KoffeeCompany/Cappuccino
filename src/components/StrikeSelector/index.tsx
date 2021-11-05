@@ -10,7 +10,6 @@ export default function StrikeSelector({
   priceLower,
   priceUpper,
   onLeftRangeInput,
-  onRightRangeInput,
   getDecrementLower,
   getIncrementLower,
   getDecrementUpper,
@@ -38,7 +37,6 @@ export default function StrikeSelector({
   const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB)
 
   const leftPrice = isSorted ? priceLower : priceUpper?.invert()
-  const rightPrice = isSorted ? priceUpper : priceLower?.invert()
 
   return (
     <AutoColumn gap="md">
