@@ -10,6 +10,12 @@ export enum OptionType {
   PUT,
 }
 
+export enum OptionStatus {
+  submitted,
+  executed,
+  cancelled,
+}
+
 // export const api = createApi({
 //   reducerPath: 'optionApi',
 //   baseQuery: graphqlRequestBaseQuery(),

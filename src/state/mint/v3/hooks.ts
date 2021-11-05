@@ -133,7 +133,7 @@ export function useV3DerivedMintInfo(
 } {
   const { account } = useActiveWeb3React()
 
-  const { independentField, typedValue, leftRangeTypedValue, rightRangeTypedValue, startPriceTypedValue } =
+  const { independentField, typedValue, leftRangeTypedValue, rightRangeTypedValue, startPriceTypedValue, optionValue } =
     useV3MintState()
 
   const dependentField = independentField === Field.CURRENCY_A ? Field.CURRENCY_B : Field.CURRENCY_A
@@ -309,6 +309,11 @@ export function useV3DerivedMintInfo(
     currencies[independentField]
   )
 
+  const independentOptionAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
+    optionValue,
+    currencies[independentField]
+  )
+
   const dependentAmount: CurrencyAmount<Currency> | undefined = useMemo(() => {
     // we wrap the currencies just to get the price in terms of the other token
     const wrappedIndependentAmount = independentAmount?.wrapped
@@ -368,10 +373,10 @@ export function useV3DerivedMintInfo(
 
   const parsedOptionAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined } = useMemo(() => {
     return {
-      [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentAmount : dependentAmount,
-      [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentAmount : independentAmount,
+      [Field.CURRENCY_A]: independentOptionAmount,
+      [Field.CURRENCY_B]: undefined,
     }
-  }, [dependentAmount, independentAmount, independentField])
+  }, [independentOptionAmount])
   
 
   // single deposit only if price is out of range
