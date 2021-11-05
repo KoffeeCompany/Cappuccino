@@ -117,7 +117,6 @@ export const MediumOnly = styled.div`
     display: none;
   `};
 `
-
 export const HideMedium = styled.div`
   display: none;
 
