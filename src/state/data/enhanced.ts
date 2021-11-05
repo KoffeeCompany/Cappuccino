@@ -13,7 +13,10 @@ export const api = generatedApi.enhanceEndpoints({
     feeTierDistribution: {
       providesTags: [CHAIN_TAG],
     },
+    allOptionIntentions: {
+      providesTags: [CHAIN_TAG],
+    },
   },
 })
 
-export const { useAllV3TicksQuery, useFeeTierDistributionQuery } = api
+export const { useAllV3TicksQuery, useFeeTierDistributionQuery, useAllOptionIntentionsQuery } = api

@@ -3,6 +3,7 @@ import { AgGridReact } from 'ag-grid-react'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useDarkModeManager } from 'state/user/hooks'
 import { Option } from '../../entities/option'
+import { usePutOptionIntentions, useCallOptionIntentions } from './hooks'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
@@ -14,6 +15,26 @@ interface OptionsGridProps {
 export default function OptionsGrid({ onRowSelect, ...rest }: OptionsGridProps) {
   const { account, chainId } = useActiveWeb3React()
   const [darkMode] = useDarkModeManager()
+  const {
+    isLoading: putIsLoading,
+    isUninitialized: putIsUninitialized,
+    isError: putIsError,
+    error: putError,
+    formattedData: putData,
+  } = usePutOptionIntentions()
+  const {
+    isLoading: callIsLoading,
+    isUninitialized: callIsUninitialized,
+    isError: callIsError,
+    error: callError,
+    formattedData: callData,
+  } = useCallOptionIntentions()
+
+  console.log('>>>>> CALL DATA callIsLoading >>>>>>< : ' + callIsLoading)
+  console.log('>>>>> CALL DATA callIsUninitialized >>>>>>< : ' + callIsUninitialized)
+  console.log('>>>>> CALL DATA callIsError >>>>>>< : ' + callIsError)
+  console.log('>>>>> CALL DATA callError >>>>>>< : ' + callError)
+  console.log('>>>>> CALL DATA callData >>>>>>< : ' + (callData == undefined ? 'undefined' : callData[0].amount0))
 
   const state = {
     columnDefs: [
