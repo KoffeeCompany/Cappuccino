@@ -1,13 +1,12 @@
-import { AllOptionIntentionsQuery } from 'state/data/generated'
+import { AllOptionIntentionsQuery, OptionType } from 'state/data/generated'
 import { useAllOptionIntentionsQuery } from 'state/data/enhanced'
 import ms from 'ms.macro'
-import { OptionType } from 'state/options/slice'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useOptionIntentions(optionType: OptionType) {
   const { isLoading, isError, error, isUninitialized, data } = useAllOptionIntentionsQuery(
     {
-      optionType: 'CALL',
+      optionType: optionType,
       skip: 0,
     },
     {
@@ -20,6 +19,6 @@ export function useOptionIntentions(optionType: OptionType) {
     isUninitialized,
     isError,
     error,
-    options: data?.swaps as AllOptionIntentionsQuery['swaps'],
+    options: data?.options as AllOptionIntentionsQuery['options'],
   }
 }

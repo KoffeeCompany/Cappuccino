@@ -35,7 +35,7 @@ export default function OptionsGrid({ onRowSelect }: OptionsGridProps) {
   console.log('>>>>> CALL DATA callIsLoading >>>>>>< : ' + callIsLoading)
   console.log('>>>>> CALL DATA callIsUninitialized >>>>>>< : ' + callIsUninitialized)
   console.log('>>>>> CALL DATA callIsError >>>>>>< : ' + callIsError)
-  console.log('>>>>> CALL DATA callError >>>>>>< : ' + callError)
+  console.log('>>>>> CALL DATA callError >>>>>>< : ' + callError?.message)
   console.log('>>>>> CALL DATA callData >>>>>>< : ' + (callData == undefined ? 'undefined' : callData[0].amount0))
 
   const state = {
