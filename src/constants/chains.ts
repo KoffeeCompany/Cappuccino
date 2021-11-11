@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import arbitrumLogoUrl from 'assets/svg/arbitrum_logo.svg'
 import optimismLogoUrl from 'assets/svg/optimism_logo.svg'
 
@@ -12,6 +13,8 @@ export enum SupportedChainId {
   ARBITRUM_RINKEBY = 421611,
   OPTIMISM = 10,
   OPTIMISTIC_KOVAN = 69,
+
+  LOCALHOST = 31337
 }
 
 export const ALL_SUPPORTED_CHAIN_IDS: SupportedChainId[] = [
@@ -25,6 +28,8 @@ export const ALL_SUPPORTED_CHAIN_IDS: SupportedChainId[] = [
   SupportedChainId.ARBITRUM_RINKEBY,
   SupportedChainId.OPTIMISM,
   SupportedChainId.OPTIMISTIC_KOVAN,
+
+  SupportedChainId.LOCALHOST
 ]
 
 export const L1_CHAIN_IDS = [

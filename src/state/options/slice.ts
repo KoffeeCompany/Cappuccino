@@ -2,30 +2,56 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { ClientError, gql, GraphQLClient } from 'graphql-request'
 import { BaseQueryApi, BaseQueryFn } from '@reduxjs/toolkit/dist/query/baseQueryTypes'
 import { DocumentNode } from 'graphql'
-import { OptionType } from 'state/data/generated'
+//import { OptionType } from 'state/data/generated'
 
-const ROBUSTA_SUBGRAPH_URL = 'http://localhost:8000/subgraphs/name/robusta/option'
+//const ROBUSTA_SUBGRAPH_URL = 'http://localhost:8000/subgraphs/name/robusta/option'
+const ROBUSTA_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3'
+
+// export const api = createApi({
+//   reducerPath: 'optionApi',
+//   baseQuery: graphqlRequestBaseQuery(),
+//   endpoints: (builder) => ({
+//     allOptionIntentions: builder.query({
+//       query: ({ optionType = OptionType.Call, skip = 0 }) => ({
+//         document: gql`
+//           query allOptionIntentions($optionType: OptionType!, $skip: Int!) {
+//             options(first: 1000, skip: $skip, where: { optionType: $optionType }, orderBy: id) {
+//               id
+//               status
+//               maker
+//               strike
+//               optionType
+//               maturity
+//               price
+//               amount0
+//               amount1
+//               token0
+//               token1
+//             }
+//           }
+//         `,
+//         variables: {
+//           optionType,
+//           skip,
+//         },
+//       }),
+//     }),
+//   }),
+// })
 
 export const api = createApi({
   reducerPath: 'optionApi',
   baseQuery: graphqlRequestBaseQuery(),
   endpoints: (builder) => ({
     allOptionIntentions: builder.query({
-      query: ({ optionType = OptionType.Call, skip = 0 }) => ({
+      query: ({ optionType, skip = 0 }) => ({
         document: gql`
-          query allOptionIntentions($optionType: OptionType!, $skip: Int!) {
-            options(first: 1000, skip: $skip, where: { optionType: $optionType }, orderBy: id) {
-              id
-              status
-              maker
-              strike
-              optionType
-              maturity
-              price
+          query allOptionIntentions($optionType: String!, $skip: Int!) {
+            swaps(first: 1000, skip: $skip, orderBy: sender) {
+              sender
+              recipient
               amount0
               amount1
-              token0
-              token1
             }
           }
         `,

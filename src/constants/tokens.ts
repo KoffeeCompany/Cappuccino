@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { WETH9, Token, Ether } from '@uniswap/sdk-core'
 import { UNI_ADDRESS } from './addresses'
 import { SupportedChainId } from './chains'
@@ -113,6 +114,7 @@ export const UNI: { [chainId: number]: Token } = {
   [SupportedChainId.ROPSTEN]: new Token(SupportedChainId.ROPSTEN, UNI_ADDRESS[3], 18, 'UNI', 'Uniswap'),
   [SupportedChainId.GOERLI]: new Token(SupportedChainId.GOERLI, UNI_ADDRESS[5], 18, 'UNI', 'Uniswap'),
   [SupportedChainId.KOVAN]: new Token(SupportedChainId.KOVAN, UNI_ADDRESS[42], 18, 'UNI', 'Uniswap'),
+  [SupportedChainId.LOCALHOST]: new Token(SupportedChainId.LOCALHOST, UNI_ADDRESS[42], 18, 'UNI', 'Uniswap'),
 }
 
 export const WETH9_EXTENDED: { [chainId: number]: Token } = {
@@ -140,6 +142,13 @@ export const WETH9_EXTENDED: { [chainId: number]: Token } = {
   ),
   [SupportedChainId.ARBITRUM_RINKEBY]: new Token(
     SupportedChainId.ARBITRUM_RINKEBY,
+    '0xB47e6A5f8b33b3F17603C83a0535A9dcD7E32681',
+    18,
+    'WETH',
+    'Wrapped Ether'
+  ),
+  [SupportedChainId.LOCALHOST]: new Token(
+    SupportedChainId.LOCALHOST,
     '0xB47e6A5f8b33b3F17603C83a0535A9dcD7E32681',
     18,
     'WETH',

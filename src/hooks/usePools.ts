@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { computePoolAddress } from '@uniswap/v3-sdk'
 import { V3_CORE_FACTORY_ADDRESSES } from '../constants/addresses'
 import { IUniswapV3PoolStateInterface } from '../types/v3/IUniswapV3PoolState'

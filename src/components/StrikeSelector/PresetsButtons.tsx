@@ -60,3 +60,51 @@ export function Straddle({ setStraddleRange }: { setStraddleRange: () => void })
     </AutoRow>
   )
 }
+
+export function Maturity1D({ setMaturity1D }: { setMaturity1D: () => void }) {
+  return (
+    <AutoRow gap="4px" width="auto">
+      <Button onClick={() => setMaturity1D()}>
+        <TYPE.body fontSize={12}>
+          <Trans>24h</Trans>
+        </TYPE.body>
+      </Button>
+    </AutoRow>
+  )
+}
+
+export function Maturity7D({ setMaturity7D }: { setMaturity7D: () => void }) {
+  return (
+    <AutoRow gap="4px" width="auto">
+      <Button onClick={() => setMaturity7D()}>
+        <TYPE.body fontSize={12}>
+          <Trans>7D</Trans>
+        </TYPE.body>
+      </Button>
+    </AutoRow>
+  )
+}
+
+export function Maturity1M({ setMaturity1M }: { setMaturity1M: () => void }) {
+  return (
+    <AutoRow gap="4px" width="auto">
+      <Button onClick={() => setMaturity1M()}>
+        <TYPE.body fontSize={12}>
+          <Trans>1M</Trans>
+        </TYPE.body>
+      </Button>
+    </AutoRow>
+  )
+}
+
+export function Maturity3M({ setMaturity3M }: { setMaturity3M: () => void }) {
+  return (
+    <AutoRow gap="4px" width="auto">
+      <Button onClick={() => setMaturity3M()}>
+        <TYPE.body fontSize={12}>
+          <Trans>3M</Trans>
+        </TYPE.body>
+      </Button>
+    </AutoRow>
+  )
+}

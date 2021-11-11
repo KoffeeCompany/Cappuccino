@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Web3Provider } from '@ethersproject/providers'
 import { SafeAppConnector } from '@gnosis.pm/safe-apps-web3-react'
 import { InjectedConnector } from '@web3-react/injected-connector'
@@ -29,6 +30,7 @@ const NETWORK_URLS: { [key in SupportedChainId]: string } = {
   [SupportedChainId.OPTIMISTIC_KOVAN]: `https://optimism-kovan.infura.io/v3/${INFURA_KEY}`,
   [SupportedChainId.ARBITRUM_ONE]: `https://arbitrum-mainnet.infura.io/v3/${INFURA_KEY}`,
   [SupportedChainId.ARBITRUM_RINKEBY]: `https://arbitrum-rinkeby.infura.io/v3/${INFURA_KEY}`,
+  [SupportedChainId.LOCALHOST]: `http://127.0.0.1:8545`,
 }
 
 export const network = new NetworkConnector({

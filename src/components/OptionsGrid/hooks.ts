@@ -1,9 +1,9 @@
 import { useOptionIntentions } from 'hooks/useOptionData'
 import { useMemo } from 'react'
-import { OptionType } from 'state/data/generated'
+//import { OptionType } from 'state/data/generated'
 
 export function usePutOptionIntentions() {
-  const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions(OptionType.Put)
+  const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions()
 
   return useMemo(() => {
     return {
@@ -17,7 +17,7 @@ export function usePutOptionIntentions() {
 }
 
 export function useCallOptionIntentions() {
-  const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions(OptionType.Call)
+  const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions()
 
   return useMemo(() => {
     return {

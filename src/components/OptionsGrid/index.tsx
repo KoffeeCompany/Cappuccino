@@ -1,11 +1,11 @@
 import { AgGridReact } from 'ag-grid-react'
 import { useDarkModeManager } from 'state/user/hooks'
 import { Option } from '../../entities/option'
-import { usePutOptionIntentions, useCallOptionIntentions } from './hooks'
+//import { usePutOptionIntentions, useCallOptionIntentions } from './hooks'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
-import request, { gql } from 'graphql-request'
+//import request, { gql } from 'graphql-request'
 
 interface OptionsGridProps {
   onRowSelect: (row: any) => void
@@ -40,34 +40,34 @@ export default function OptionsGrid({ onRowSelect }: OptionsGridProps) {
   // console.log('>>>>> CALL DATA callData >>>>>>< : ' + (callData == undefined ? 'undefined' : callData[0].amount0))
 
   // TO DO : To fix later
-  const query = gql`
-    query gettest {
-      options(first: 1000, skip: 0, orderBy: id) {
-        id
-        status
-        maker
-        strike
-        optionType
-        maturity
-        price
-        amount0
-        amount1
-        token0
-        token1
-      }
-    }
-  `
+  // const query = gql`
+  //   query gettest {
+  //     options(first: 1000, skip: 0, orderBy: id) {
+  //       id
+  //       status
+  //       maker
+  //       strike
+  //       optionType
+  //       maturity
+  //       price
+  //       amount0
+  //       amount1
+  //       token0
+  //       token1
+  //     }
+  //   }
+  // `
 
-  const ROBUSTA_SUBGRAPH_URL = 'http://localhost:8000/subgraphs/name/robusta/option'
+  // const ROBUSTA_SUBGRAPH_URL = 'http://localhost:8000/subgraphs/name/robusta/option'
 
-  request(ROBUSTA_SUBGRAPH_URL, query, {}).then(
-    (result) => {
-      console.log('>>>>> RESULT >>>>>>< : ' + result[0])
-    },
-    (error) => {
-      console.log('>>>>> ERROR RESULT >>>>>>< : ' + error)
-    }
-  )
+  // request(ROBUSTA_SUBGRAPH_URL, query, {}).then(
+  //   (result) => {
+  //     console.log('>>>>> RESULT >>>>>>< : ' + result[0])
+  //   },
+  //   (error) => {
+  //     console.log('>>>>> ERROR RESULT >>>>>>< : ' + error)
+  //   }
+  // )
 
   const state = {
     columnDefs: [

@@ -64,7 +64,7 @@ import { useDerivedPositionInfo } from 'hooks/useDerivedPositionInfo'
 import { PositionPreview } from 'components/PositionPreview'
 import FeeSelector from 'components/FeeSelector'
 import StrikeSelector from 'components/StrikeSelector'
-import CoveredCall, { ProtectedPut} from 'components/StrikeSelector/PresetsButtons'
+import CoveredCall, { Maturity1D, Maturity1M, Maturity3M, Maturity7D, ProtectedPut} from 'components/StrikeSelector/PresetsButtons'
 import RateToggle from 'components/RateToggle'
 import { BigNumber } from '@ethersproject/bignumber'
 import { AddRemoveTabs } from 'components/NavigationTabs'
@@ -765,6 +765,37 @@ export default function AddLiquidity({
                       hideBalance={true}
                       showCommonBases
                     />
+                  </AutoColumn>
+                </DynamicSection>
+                <DynamicSection style={{ marginTop: '10px'}} disabled={tickLower === undefined || tickUpper === undefined || invalidPool || invalidRange}>
+                  <AutoColumn gap="md">
+                    <TYPE.label>
+                      <Trans>Maturity</Trans>
+                    </TYPE.label>
+                  </AutoColumn>                    
+                  <AutoColumn>
+                    <CTASection2>
+                      <Maturity1D
+                        setMaturity1D={() => {
+                          setProtectedPutRange(1)
+                        }}
+                      /> 
+                      <Maturity7D
+                        setMaturity7D={() => {
+                          setProtectedPutRange(1)
+                        }}
+                      />
+                      <Maturity1M
+                        setMaturity1M={() => {
+                          setProtectedPutRange(1)
+                        }}
+                      />
+                      <Maturity3M
+                        setMaturity3M={() => {
+                          setProtectedPutRange(1)
+                        }}
+                      />  
+                    </CTASection2>
                   </AutoColumn>
                 </DynamicSection>
               </div>
