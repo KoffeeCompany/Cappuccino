@@ -130,4 +130,12 @@ export const CHAIN_INFO: ChainInfo = {
     label: 'Optimistic Kovan',
     logoUrl: optimismLogoUrl,
   },
+  [SupportedChainId.LOCALHOST]: {
+    bridge: '',
+    docs: '',
+    explorer: '',
+    infoLink: '',
+    label: 'Localhost',
+    logoUrl: undefined,
+  },
 }
