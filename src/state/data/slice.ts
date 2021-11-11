@@ -13,6 +13,8 @@ const CHAIN_SUBGRAPH_URL: Record<number, string> = {
   [SupportedChainId.ARBITRUM_ONE]: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswap-arbitrum-one',
 
   [SupportedChainId.OPTIMISM]: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswap-optimism',
+
+  [SupportedChainId.LOCALHOST]: 'http://localhost:8000/subgraphs/name/robusta/option',
 }
 
 export const api = createApi({
@@ -69,6 +71,31 @@ export const api = createApi({
         variables: {
           token0,
           token1,
+        },
+      }),
+    }),
+    allOptionIntentions: builder.query({
+      query: ({ optionType, skip = 0 }) => ({
+        document: gql`
+          query allOptionIntentions($optionType: OptionType!, $skip: Int!) {
+            options(first: 1000, skip: $skip, where: { optionType: $optionType }, orderBy: id) {
+              id
+              status
+              maker
+              strike
+              optionType
+              maturity
+              price
+              amount0
+              amount1
+              token0
+              token1
+            }
+          }
+        `,
+        variables: {
+          optionType,
+          skip,
         },
       }),
     }),

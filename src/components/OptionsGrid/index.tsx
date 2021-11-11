@@ -1,7 +1,7 @@
 import { AgGridReact } from 'ag-grid-react'
 import { useDarkModeManager } from 'state/user/hooks'
 import { Option } from '../../entities/option'
-//import { usePutOptionIntentions, useCallOptionIntentions } from './hooks'
+import { usePutOptionIntentions, useCallOptionIntentions } from './hooks'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
@@ -13,61 +13,31 @@ interface OptionsGridProps {
 
 export default function OptionsGrid({ onRowSelect }: OptionsGridProps) {
   const [darkMode] = useDarkModeManager()
-  // const {
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   isLoading: putIsLoading,
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   isUninitialized: putIsUninitialized,
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   isError: putIsError,
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   error: putError,
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   formattedData: putData,
-  // } = usePutOptionIntentions()
-  // const {
-  //   isLoading: callIsLoading,
-  //   isUninitialized: callIsUninitialized,
-  //   isError: callIsError,
-  //   error: callError,
-  //   formattedData: callData,
-  // } = useCallOptionIntentions()
+  const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isLoading: putIsLoading,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isUninitialized: putIsUninitialized,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isError: putIsError,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    error: putError,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    formattedData: putData,
+  } = usePutOptionIntentions()
+  const {
+    isLoading: callIsLoading,
+    isUninitialized: callIsUninitialized,
+    isError: callIsError,
+    error: callError,
+    formattedData: callData,
+  } = useCallOptionIntentions()
 
-  // console.log('>>>>> CALL DATA callIsLoading >>>>>>< : ' + callIsLoading)
-  // console.log('>>>>> CALL DATA callIsUninitialized >>>>>>< : ' + callIsUninitialized)
-  // console.log('>>>>> CALL DATA callIsError >>>>>>< : ' + callIsError)
-  // console.log('>>>>> CALL DATA callError >>>>>>< : ' + callError?.message)
-  // console.log('>>>>> CALL DATA callData >>>>>>< : ' + (callData == undefined ? 'undefined' : callData[0].amount0))
-
-  // TO DO : To fix later
-  // const query = gql`
-  //   query gettest {
-  //     options(first: 1000, skip: 0, orderBy: id) {
-  //       id
-  //       status
-  //       maker
-  //       strike
-  //       optionType
-  //       maturity
-  //       price
-  //       amount0
-  //       amount1
-  //       token0
-  //       token1
-  //     }
-  //   }
-  // `
-
-  // const ROBUSTA_SUBGRAPH_URL = 'http://localhost:8000/subgraphs/name/robusta/option'
-
-  // request(ROBUSTA_SUBGRAPH_URL, query, {}).then(
-  //   (result) => {
-  //     console.log('>>>>> RESULT >>>>>>< : ' + result[0])
-  //   },
-  //   (error) => {
-  //     console.log('>>>>> ERROR RESULT >>>>>>< : ' + error)
-  //   }
-  // )
+  console.log('>>>>> CALL DATA callIsLoading >>>>>>< : ' + callIsLoading)
+  console.log('>>>>> CALL DATA callIsUninitialized >>>>>>< : ' + callIsUninitialized)
+  console.log('>>>>> CALL DATA callIsError >>>>>>< : ' + callIsError)
+  console.log('>>>>> CALL DATA callError >>>>>>< : ' + callError?.message)
+  console.log('>>>>> CALL DATA callData >>>>>>< : ' + (callData == undefined ? 'undefined' : callData[0]))
 
   const state = {
     columnDefs: [
