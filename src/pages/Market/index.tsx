@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Trans } from '@lingui/macro'
 import { useState, useCallback } from 'react'
 import { AutoColumn } from 'components/Column'

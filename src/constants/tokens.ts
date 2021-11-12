@@ -149,7 +149,7 @@ export const WETH9_EXTENDED: { [chainId: number]: Token } = {
   ),
   [SupportedChainId.LOCALHOST]: new Token(
     SupportedChainId.LOCALHOST,
-    '0xB47e6A5f8b33b3F17603C83a0535A9dcD7E32681',
+    '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     18,
     'WETH',
     'Wrapped Ether'

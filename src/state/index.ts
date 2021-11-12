@@ -14,6 +14,7 @@ import burnV3 from './burn/v3/reducer'
 import logs from './logs/slice'
 import multicall from './multicall/reducer'
 import { api as dataApi } from './data/slice'
+import { api as optionApi } from './option/slice'
 import { routingApi } from './routing/slice'
 
 const PERSISTED_KEYS: string[] = ['user', 'transactions', 'lists']
@@ -33,11 +34,13 @@ const store = configureStore({
     logs,
     [dataApi.reducerPath]: dataApi.reducer,
     [routingApi.reducerPath]: routingApi.reducer,
+    [optionApi.reducerPath]: optionApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ thunk: true })
       .concat(dataApi.middleware)
       .concat(routingApi.middleware)
+      .concat(optionApi.middleware)
       .concat(save({ states: PERSISTED_KEYS, debounce: 1000 })),
   preloadedState: load({ states: PERSISTED_KEYS, disableWarnings: process.env.NODE_ENV === 'test' }),
 })
