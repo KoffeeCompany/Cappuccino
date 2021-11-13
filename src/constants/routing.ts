@@ -37,6 +37,7 @@ export const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
   ...WETH_ONLY,
   [SupportedChainId.MAINNET]: [...WETH_ONLY[SupportedChainId.MAINNET], DAI, USDC, USDT, WBTC],
   [SupportedChainId.OPTIMISM]: [...WETH_ONLY[SupportedChainId.OPTIMISM], DAI_OPTIMISM, USDT_OPTIMISM, WBTC_OPTIMISM],
+  [SupportedChainId.LOCALHOST]: [...WETH_ONLY[SupportedChainId.LOCALHOST], DAI, USDC, USDT, WBTC],
 }
 export const ADDITIONAL_BASES: { [chainId: number]: { [tokenAddress: string]: Token[] } } = {
   [SupportedChainId.MAINNET]: {
@@ -56,6 +57,9 @@ export const ADDITIONAL_BASES: { [chainId: number]: { [tokenAddress: string]: To
 export const CUSTOM_BASES: { [chainId: number]: { [tokenAddress: string]: Token[] } } = {
   [SupportedChainId.MAINNET]: {
     [AMPL.address]: [DAI, WETH9_EXTENDED[SupportedChainId.MAINNET]],
+  },
+  [SupportedChainId.LOCALHOST]: {
+    [AMPL.address]: [DAI, WETH9_EXTENDED[SupportedChainId.LOCALHOST]],
   },
 }
 
@@ -91,12 +95,21 @@ export const COMMON_BASES: ChainCurrencyList = {
   ],
   [SupportedChainId.OPTIMISM]: [ExtendedEther.onChain(SupportedChainId.OPTIMISM)],
   [SupportedChainId.OPTIMISTIC_KOVAN]: [ExtendedEther.onChain(SupportedChainId.OPTIMISTIC_KOVAN)],
+  [SupportedChainId.LOCALHOST]: [
+    ExtendedEther.onChain(SupportedChainId.LOCALHOST),
+    DAI,
+    USDC,
+    USDT,
+    WBTC,
+    WETH9_EXTENDED[SupportedChainId.LOCALHOST],
+  ],
 }
 
 // used to construct the list of all pairs we consider by default in the frontend
 export const BASES_TO_TRACK_LIQUIDITY_FOR: ChainTokenList = {
   ...WETH_ONLY,
   [SupportedChainId.MAINNET]: [...WETH_ONLY[SupportedChainId.MAINNET], DAI, USDC, USDT, WBTC],
+  [SupportedChainId.LOCALHOST]: [...WETH_ONLY[SupportedChainId.LOCALHOST], DAI, USDC, USDT, WBTC],
 }
 export const PINNED_PAIRS: { readonly [chainId: number]: [Token, Token][] } = {
   [SupportedChainId.MAINNET]: [

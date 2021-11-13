@@ -38,6 +38,7 @@ export const L1_CHAIN_IDS = [
   SupportedChainId.RINKEBY,
   SupportedChainId.GOERLI,
   SupportedChainId.KOVAN,
+  SupportedChainId.LOCALHOST,
 ] as const
 
 export type SupportedL1ChainId = typeof L1_CHAIN_IDS[number]
@@ -131,11 +132,9 @@ export const CHAIN_INFO: ChainInfo = {
     logoUrl: optimismLogoUrl,
   },
   [SupportedChainId.LOCALHOST]: {
-    bridge: '',
     docs: '',
     explorer: '',
     infoLink: '',
     label: 'Localhost',
-    logoUrl: undefined,
   },
 }
