@@ -12,7 +12,7 @@ import { useV3NFTPositionManagerContract } from '../../hooks/useContract'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
 import { ThemeContext } from 'styled-components/macro'
-import { ButtonError, ButtonLight, ButtonPrimary, ButtonText, ButtonYellow } from '../../components/Button'
+import { ButtonError, ButtonLight, ButtonPrimary, ButtonRadioChecked, ButtonText, ButtonYellow } from '../../components/Button'
 import { YellowCard, OutlineCard, BlueCard } from '../../components/Card'
 import { AutoColumn } from '../../components/Column'
 import TransactionConfirmationModal, { ConfirmationModalContent } from '../../components/TransactionConfirmationModal'
@@ -75,6 +75,8 @@ import { SupportedChainId } from 'constants/chains'
 import OptimismDowntimeWarning from 'components/OptimismDowntimeWarning'
 import { CHAIN_INFO } from '../../constants/chains'
 import styled from 'styled-components/macro'
+import Badge from 'components/Badge'
+import { Maturity } from 'constants/maturity'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -89,6 +91,24 @@ const CTASection2 = styled.section`
     grid-template-rows: auto;
   `};
 `
+const ResponsiveText = styled(TYPE.label)`
+  line-height: 16px;
+
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    font-size: 12px;
+    line-height: 12px;
+  `};
+`
+
+const FeeTierPercentageBadge = ({ percentage }: { percentage: number | undefined }) => {
+  return (
+    <Badge>
+      <TYPE.label fontSize={12}>
+        {percentage !== undefined ? <Trans>{percentage?.toFixed(0)}% select</Trans> : <Trans>Not created</Trans>}
+      </TYPE.label>
+    </Badge>
+  )
+}
 
 export default function AddLiquidity({
   match: {
@@ -101,7 +121,7 @@ export default function AddLiquidity({
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
   const expertMode = useIsExpertMode()
   const addTransaction = useTransactionAdder()
-  const positionManager = useV3NFTPositionManagerContract()
+  const positionManager = useV3NFTPositionManagerContract()  
 
   // check for existing position if tokenId in url
   const { position: existingPositionDetails, loading: positionLoading } = useV3PositionFromTokenId(
@@ -121,6 +141,8 @@ export default function AddLiquidity({
   // prevent an error if they input ETH/WETH
   const quoteCurrency =
     baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
+
+  let maturity: Maturity | undefined = undefined
 
   // mint state
   const { independentField, typedValue, startPriceTypedValue, optionValue } = useV3MintState()
@@ -439,6 +461,13 @@ export default function AddLiquidity({
       history.push(`/add/${currencyIdA}/${currencyIdB}/${newFeeAmount}`)
     },
     [currencyIdA, currencyIdB, history, onLeftRangeInput, onRightRangeInput]
+  )
+
+  const handleMaturitySelectWithEvent = useCallback(
+    (maturity_: Maturity) => {
+      maturity = maturity_
+    },
+    []
   )
 
   // flag for whether pool creation must be a separate tx
@@ -774,28 +803,60 @@ export default function AddLiquidity({
                     </TYPE.label>
                   </AutoColumn>                    
                   <AutoColumn>
-                    <CTASection2>
-                      <Maturity1D
-                        setMaturity1D={() => {
-                          setProtectedPutRange(1)
-                        }}
-                      /> 
-                      <Maturity7D
-                        setMaturity7D={() => {
-                          setProtectedPutRange(1)
-                        }}
-                      />
-                      <Maturity1M
-                        setMaturity1M={() => {
-                          setProtectedPutRange(1)
-                        }}
-                      />
-                      <Maturity3M
-                        setMaturity3M={() => {
-                          setProtectedPutRange(1)
-                        }}
-                      />  
-                    </CTASection2>
+                    <RowBetween>
+                      <ButtonRadioChecked
+                        width="25%"
+                        active={maturity === Maturity.ONE_DAY}
+                        onClick={() => handleMaturitySelectWithEvent(Maturity.ONE_DAY)}
+                      >
+                        <AutoColumn gap="sm" justify="flex-start">
+                          <AutoColumn justify="flex-start" gap="6px">
+                            <ResponsiveText>
+                              <Trans>24 hours</Trans>
+                            </ResponsiveText>
+                          </AutoColumn>
+                        </AutoColumn>
+                      </ButtonRadioChecked>
+                      <ButtonRadioChecked
+                        width="25%"
+                        active={maturity === Maturity.SEVEN_DAYS}
+                        onClick={() => handleMaturitySelectWithEvent(Maturity.SEVEN_DAYS)}
+                      >
+                        <AutoColumn gap="sm" justify="flex-start">
+                          <AutoColumn justify="flex-start" gap="4px">
+                            <ResponsiveText>
+                              <Trans>7 days</Trans>
+                            </ResponsiveText>
+                          </AutoColumn>
+                        </AutoColumn>
+                      </ButtonRadioChecked>
+                      <ButtonRadioChecked
+                        width="25%"
+                        active={maturity === Maturity.ONE_MONTH}
+                        onClick={() => handleMaturitySelectWithEvent(Maturity.ONE_MONTH)}
+                      >
+                        <AutoColumn gap="sm" justify="flex-start">
+                          <AutoColumn justify="flex-start" gap="4px">
+                            <ResponsiveText>
+                              <Trans>1 month</Trans>
+                            </ResponsiveText>
+                          </AutoColumn>
+                        </AutoColumn>
+                      </ButtonRadioChecked>
+                      <ButtonRadioChecked
+                        width="25%"
+                        active={maturity === Maturity.THREE_MONTHS}
+                        onClick={() => handleMaturitySelectWithEvent(Maturity.THREE_MONTHS)}
+                      >
+                        <AutoColumn gap="sm" justify="flex-start">
+                          <AutoColumn justify="flex-start" gap="4px">
+                            <ResponsiveText>
+                              <Trans>3 months</Trans>
+                            </ResponsiveText>
+                          </AutoColumn>
+                        </AutoColumn>
+                      </ButtonRadioChecked>
+                    </RowBetween>
                   </AutoColumn>
                 </DynamicSection>
               </div>
