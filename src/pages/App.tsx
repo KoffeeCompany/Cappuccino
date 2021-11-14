@@ -78,7 +78,7 @@ export default function App() {
               <Route
                 exact
                 strict
-                path="/add/:currencyIdA?/:currencyIdB?/:feeAmount?"
+                path="/add/:currencyIdA?/:currencyIdB?/:feeAmount?/:maturity?"
                 component={RedirectDuplicateTokenIds}
               />
               <Route component={RedirectPathToMarket} />

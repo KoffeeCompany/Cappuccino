@@ -100,22 +100,12 @@ const ResponsiveText = styled(TYPE.label)`
   `};
 `
 
-const FeeTierPercentageBadge = ({ percentage }: { percentage: number | undefined }) => {
-  return (
-    <Badge>
-      <TYPE.label fontSize={12}>
-        {percentage !== undefined ? <Trans>{percentage?.toFixed(0)}% select</Trans> : <Trans>Not created</Trans>}
-      </TYPE.label>
-    </Badge>
-  )
-}
-
 export default function AddLiquidity({
   match: {
-    params: { currencyIdA, currencyIdB, feeAmount: feeAmountFromUrl, tokenId },
+    params: { currencyIdA, currencyIdB, feeAmount: feeAmountFromUrl, maturity: maturityFromUrl, tokenId },
   },
   history,
-}: RouteComponentProps<{ currencyIdA?: string; currencyIdB?: string; feeAmount?: string; tokenId?: string; }>) {
+}: RouteComponentProps<{ currencyIdA?: string; currencyIdB?: string; feeAmount?: string; maturity?: string; tokenId?: string; }>) {
   const { account, chainId, library } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
@@ -142,7 +132,10 @@ export default function AddLiquidity({
   const quoteCurrency =
     baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
 
-  let maturity: Maturity | undefined = undefined
+  const maturity: Maturity | undefined = 
+  maturityFromUrl && Object.values(Maturity).includes(Maturity[parseInt(maturityFromUrl)])
+    ? parseInt(maturityFromUrl)
+    : undefined
 
   // mint state
   const { independentField, typedValue, startPriceTypedValue, optionValue } = useV3MintState()
@@ -465,7 +458,13 @@ export default function AddLiquidity({
 
   const handleMaturitySelectWithEvent = useCallback(
     (maturity_: Maturity) => {
-      maturity = maturity_
+      ReactGA.event({
+        category: 'MaturitySelect',
+        action: 'Manual',
+      })
+      onLeftRangeInput('')
+      onRightRangeInput('')
+      history.push(`/add/${currencyIdA}/${currencyIdB}/${feeAmount}/${maturity_}`)
     },
     []
   )
@@ -501,12 +500,6 @@ export default function AddLiquidity({
   // get value and prices at ticks
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
-  console.log('>>>>>>>>ticks', ticks)
-  console.log('>>>>>>>>tickLower', tickLower)
-  console.log('>>>>>>>>tickUpper', tickUpper)
-  console.log('>>>>>>>>pricesAtTicks', pricesAtTicks)
-  console.log('>>>>>>>>priceLower', priceLower)
-  console.log('>>>>>>>>priceUpper', priceUpper)
 
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice } =
     useRangeHopCallbacks(baseCurrency ?? undefined, quoteCurrency ?? undefined, feeAmount, tickLower, tickUpper, pool)
@@ -811,7 +804,7 @@ export default function AddLiquidity({
                   <AutoColumn>
                     <RowBetween>
                       <ButtonRadioChecked
-                        width="25%"
+                        width="24%"
                         active={maturity === Maturity.ONE_DAY}
                         onClick={() => handleMaturitySelectWithEvent(Maturity.ONE_DAY)}
                       >
@@ -824,7 +817,7 @@ export default function AddLiquidity({
                         </AutoColumn>
                       </ButtonRadioChecked>
                       <ButtonRadioChecked
-                        width="25%"
+                        width="24%"
                         active={maturity === Maturity.SEVEN_DAYS}
                         onClick={() => handleMaturitySelectWithEvent(Maturity.SEVEN_DAYS)}
                       >
@@ -837,7 +830,7 @@ export default function AddLiquidity({
                         </AutoColumn>
                       </ButtonRadioChecked>
                       <ButtonRadioChecked
-                        width="25%"
+                        width="24%"
                         active={maturity === Maturity.ONE_MONTH}
                         onClick={() => handleMaturitySelectWithEvent(Maturity.ONE_MONTH)}
                       >
@@ -850,7 +843,7 @@ export default function AddLiquidity({
                         </AutoColumn>
                       </ButtonRadioChecked>
                       <ButtonRadioChecked
-                        width="25%"
+                        width="24%"
                         active={maturity === Maturity.THREE_MONTHS}
                         onClick={() => handleMaturitySelectWithEvent(Maturity.THREE_MONTHS)}
                       >
