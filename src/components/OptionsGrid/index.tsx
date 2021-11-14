@@ -1,10 +1,10 @@
 import { AgGridReact } from 'ag-grid-react'
 import { useDarkModeManager } from 'state/user/hooks'
 import { Option } from '../../entities/option'
-import { usePutOptionIntentions, useCallOptionIntentions } from './hooks'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
+import { useCallOptionIntentions, usePutOptionIntentions } from 'state/option/hooks'
 //import request, { gql } from 'graphql-request'
 
 interface OptionsGridProps {

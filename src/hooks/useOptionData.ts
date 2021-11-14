@@ -1,10 +1,19 @@
 import { AllOptionIntentionsQuery, OptionType } from 'state/data/generated'
 import { useAllOptionIntentionsQuery } from 'state/data/enhanced'
 import ms from 'ms.macro'
-// import { useMultipleContractSingleData } from 'state/multicall/hooks'
-// import { useMemo } from 'react'
-// import { OPTION_ADDRESSES } from 'constants/addresses'
+import { useMultipleContractSingleData } from 'state/multicall/hooks'
+import { useMemo } from 'react'
+import { OPTION_ADDRESSES, RESOLVER_ADDRESSES } from 'constants/addresses'
 import { useActiveWeb3React } from './web3'
+import { abi as IOptionABI } from 'abis/option.json'
+import { Interface } from '@ethersproject/abi'
+import { OptionInterface } from 'abis/types/Option'
+import { Currency } from '@uniswap/sdk-core'
+import { Pool, FeeAmount } from '@uniswap/v3-sdk'
+import { usePools } from './usePools'
+import { BigNumber } from 'ethers'
+
+const OPTION_INTERFACE = new Interface(IOptionABI) as OptionInterface
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useOptionIntentions(optionType: OptionType) {
@@ -27,30 +36,62 @@ export function useOptionIntentions(optionType: OptionType) {
   }
 }
 
-export function createOptions() {
+export function useCreateOptionsData(
+  currencyA: Currency | undefined,
+  currencyB: Currency | undefined,
+  feeAmount: FeeAmount | undefined,
+  optionType: OptionType,
+  strike: number,
+  notional: number,
+  maturity: BigNumber | undefined,
+  maker: string | null | undefined,
+  price: number
+): void {
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  //const { chainId } = useActiveWeb3React()
-  // const transformed: (OptionData | null)[] = useMemo(() => {
-  //   return poolKeys.map(([currencyA, currencyB, feeAmount]) => {
-  //     if (!chainId || !currencyA || !currencyB || !feeAmount) return null
-  //     const tokenA = currencyA?.wrapped
-  //     const tokenB = currencyB?.wrapped
-  //     if (!tokenA || !tokenB || tokenA.equals(tokenB)) return null
-  //     const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
-  //     return [token0, token1, feeAmount]
-  //   })
-  // }, [chainId, poolKeys])
-  // const optionAddresses: (string | undefined)[] = useMemo(() => {
-  //   const optionAddress = chainId && OPTION_ADDRESSES[chainId]
-  //   return transformed.map((value) => {
-  //     if (!v3CoreFactoryAddress || !value) return undefined
-  //     return computePoolAddress({
-  //       factoryAddress: v3CoreFactoryAddress,
-  //       tokenA: value[0],
-  //       tokenB: value[1],
-  //       fee: value[2],
-  //     })
-  //   })
-  // }, [chainId, transformed])
-  // const slot0s = useMultipleContractSingleData(optionAddresses, POOL_STATE_INTERFACE, 'slot0')
+  const { chainId } = useActiveWeb3React()
+
+  const poolKeys: [Currency | undefined, Currency | undefined, FeeAmount | undefined][] = useMemo(
+    () => [[currencyA, currencyB, feeAmount]],
+    [currencyA, currencyB, feeAmount]
+  )
+
+  const [poolState, pool] = usePools(poolKeys)[0]
+  if (pool == null) {
+    return
+  }
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const optionAddresses: (string | undefined)[] = useMemo(() => {
+    if (chainId) {
+      if (OPTION_ADDRESSES[chainId]) {
+        return [OPTION_ADDRESSES[chainId]]
+      }
+      return [undefined]
+    }
+    return [undefined]
+  }, [chainId])
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const resolverAddresses: (string | undefined)[] = useMemo(() => {
+    if (chainId) {
+      if (RESOLVER_ADDRESSES[chainId]) {
+        return [RESOLVER_ADDRESSES[chainId]]
+      }
+      return [undefined]
+    }
+    return [undefined]
+  }, [chainId])
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const createOption = useMultipleContractSingleData(optionAddresses, OPTION_INTERFACE, 'createOption', [
+    {
+      pool: pool,
+      optionType: optionType,
+      strike: strike,
+      notional: notional,
+      maturity: maturity,
+      maker: maker,
+      resolver: resolverAddresses,
+      price: price,
+    },
+  ])
 }

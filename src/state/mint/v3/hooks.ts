@@ -137,17 +137,6 @@ export function useV3DerivedMintInfo(
   let { independentField, typedValue, leftRangeTypedValue, rightRangeTypedValue, startPriceTypedValue, optionValue } =
     useV3MintState()
   
-  const tick_spacing = !feeAmount? 0 : TICK_SPACINGS[feeAmount!]
-
-  if(leftRangeTypedValue == '' && rightRangeTypedValue != '' && typeof rightRangeTypedValue !== 'boolean')
-  {
-    leftRangeTypedValue = (parseFloat(rightRangeTypedValue.toString())+tick_spacing).toString() 
-  }
-  if(leftRangeTypedValue != '' && rightRangeTypedValue == '' && typeof leftRangeTypedValue !== 'boolean')
-  {
-    rightRangeTypedValue = (parseFloat(leftRangeTypedValue.toString())-tick_spacing).toString() 
-  }
-
   const dependentField = independentField === Field.CURRENCY_A ? Field.CURRENCY_B : Field.CURRENCY_A
 
   // currencies
@@ -297,7 +286,6 @@ export function useV3DerivedMintInfo(
     }),
     [tickSpaceLimits, tickLower, tickUpper, feeAmount]
   )
-  console.log('>>>>>>>>>>>ticksAtLimit', ticksAtLimit)
 
   // mark invalid range
   const invalidRange = Boolean(typeof tickLower === 'number' && typeof tickUpper === 'number' && tickLower >= tickUpper)
@@ -321,7 +309,7 @@ export function useV3DerivedMintInfo(
     typedValue,
     currencies[independentField]
   )
-
+  
   const independentOptionAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
     optionValue,
     currencies[independentField]
