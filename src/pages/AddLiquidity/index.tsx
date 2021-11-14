@@ -64,7 +64,7 @@ import { useDerivedPositionInfo } from 'hooks/useDerivedPositionInfo'
 import { PositionPreview } from 'components/PositionPreview'
 import FeeSelector from 'components/FeeSelector'
 import StrikeSelector from 'components/StrikeSelector'
-import CoveredCall, { Maturity1D, Maturity1M, Maturity3M, Maturity7D, ProtectedPut} from 'components/StrikeSelector/PresetsButtons'
+import CoveredCall, {ProtectedPut} from 'components/StrikeSelector/PresetsButtons'
 import RateToggle from 'components/RateToggle'
 import { BigNumber } from '@ethersproject/bignumber'
 import { AddRemoveTabs } from 'components/NavigationTabs'
@@ -501,6 +501,12 @@ export default function AddLiquidity({
   // get value and prices at ticks
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
+  console.log('>>>>>>>>ticks', ticks)
+  console.log('>>>>>>>>tickLower', tickLower)
+  console.log('>>>>>>>>tickUpper', tickUpper)
+  console.log('>>>>>>>>pricesAtTicks', pricesAtTicks)
+  console.log('>>>>>>>>priceLower', priceLower)
+  console.log('>>>>>>>>priceUpper', priceUpper)
 
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice } =
     useRangeHopCallbacks(baseCurrency ?? undefined, quoteCurrency ?? undefined, feeAmount, tickLower, tickUpper, pool)

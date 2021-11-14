@@ -77,3 +77,11 @@ export const V3_MIGRATOR_ADDRESSES: AddressMap = constructSameAddressMap('0xA564
   SupportedChainId.ARBITRUM_ONE,
   SupportedChainId.ARBITRUM_RINKEBY,
 ])
+
+export const OPTION_ADDRESSES: AddressMap = constructSameAddressMap('0x4EE6eCAD1c2Dae9f525404De8555724e3c35d07B', [
+  SupportedChainId.OPTIMISM,
+  SupportedChainId.OPTIMISTIC_KOVAN,
+  SupportedChainId.ARBITRUM_ONE,
+  SupportedChainId.ARBITRUM_RINKEBY,
+  SupportedChainId.LOCALHOST,
+])
