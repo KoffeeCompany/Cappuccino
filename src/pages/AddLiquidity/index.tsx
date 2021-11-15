@@ -77,6 +77,7 @@ import { CHAIN_INFO } from '../../constants/chains'
 import styled from 'styled-components/macro'
 import Badge from 'components/Badge'
 import { Maturity } from 'constants/maturity'
+import { ethers } from 'ethers'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -199,7 +200,11 @@ export default function AddLiquidity({
   }
 
   const optionValueCurrency = Field.CURRENCY_A != undefined ? currencies[Field.CURRENCY_A] : undefined
-  const optionValueCurrencyAmount = Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, parseInt(formattedOptionAmounts[Field.CURRENCY_A] != '' ? formattedOptionAmounts[Field.CURRENCY_A] : '0')) : undefined
+  const optionValueNumber = ethers.utils.parseUnits(formattedOptionAmounts[Field.CURRENCY_A] != '' ? formattedOptionAmounts[Field.CURRENCY_A] : '0', currencies[Field.CURRENCY_A]?.decimals)
+  const optionValueCurrencyAmount = 
+    Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined 
+    ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, optionValueNumber.toNumber()) 
+    : undefined
   
   const usdcValues = {
     [Field.CURRENCY_A]: useUSDCValue(parsedAmounts[Field.CURRENCY_A]),
@@ -632,6 +637,7 @@ export default function AddLiquidity({
                   ticksAtLimit={ticksAtLimit}
                   optionValue={optionValueCurrencyAmount}
                   optionValueCurrency={optionValueCurrency}
+                  maturity={maturity}
                 />
               )}
               bottomContent={() => (

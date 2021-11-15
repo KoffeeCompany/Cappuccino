@@ -4,6 +4,7 @@ import styled from 'styled-components/macro'
 import { Currency, CurrencyAmount, Price, Token } from '@uniswap/sdk-core'
 import { Position } from '@uniswap/v3-sdk'
 import { PositionPreview } from 'components/PositionPreview'
+import { Maturity } from 'constants/maturity'
 
 const Wrapper = styled.div`
   padding-top: 12px;
@@ -15,6 +16,7 @@ export function Review({
   ticksAtLimit,
   optionValueCurrency,
   optionValue,
+  maturity,
 }: {
   position?: Position
   existingPosition?: Position
@@ -25,6 +27,7 @@ export function Review({
   ticksAtLimit: { [bound in Bound]?: boolean | undefined }
   optionValueCurrency?: Currency | undefined
   optionValue?: CurrencyAmount<Currency>
+  maturity?: Maturity
 }) {
   return (
     <Wrapper>
@@ -38,6 +41,7 @@ export function Review({
             optionTitle={'Option Value'}
             optionValueCurrency={optionValueCurrency}
             optionValue={optionValue}
+            maturity={maturity}
           />
         ) : null}
       </AutoColumn>

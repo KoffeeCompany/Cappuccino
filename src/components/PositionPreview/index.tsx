@@ -16,7 +16,8 @@ import { ThemeContext } from 'styled-components/macro'
 import JSBI from 'jsbi'
 import { Bound } from 'state/mint/v3/actions'
 import { formatTickPrice } from 'utils/formatTickPrice'
-import { CurrencyAmount } from '@uniswap/sdk-core'
+import { CurrencyAmount, Price } from '@uniswap/sdk-core'
+import { Maturity } from 'constants/maturity'
 
 export const PositionPreview = ({
   position,
@@ -27,6 +28,7 @@ export const PositionPreview = ({
   ticksAtLimit,
   optionValueCurrency,
   optionValue,
+  maturity,
 }: {
   position: Position
   title?: ReactNode
@@ -36,6 +38,7 @@ export const PositionPreview = ({
   ticksAtLimit: { [bound: string]: boolean | undefined }
   optionValueCurrency?: Currency | undefined
   optionValue?: CurrencyAmount<Currency>
+  maturity?: Maturity
 }) => {
   const theme = useContext(ThemeContext)
 
@@ -45,12 +48,12 @@ export const PositionPreview = ({
   // track which currency should be base
   const [baseCurrency, setBaseCurrency] = useState(
     baseCurrencyDefault
-      ? baseCurrencyDefault === currency0
-        ? currency0
-        : baseCurrencyDefault === currency1
+      ? baseCurrencyDefault === currency1
         ? currency1
-        : currency0
-      : currency0
+        : baseCurrencyDefault === currency0
+        ? currency0
+        : currency1
+      : currency1
   )
 
   const sorted = baseCurrency === currency0
@@ -66,6 +69,8 @@ export const PositionPreview = ({
   }, [quoteCurrency])
 
   const removed = position?.liquidity && JSBI.equal(position?.liquidity, JSBI.BigInt(0))
+
+  const leftPrice = sorted ? priceUpper?.invert() : priceLower
 
   return (
     <AutoColumn gap="md" style={{ marginTop: '0.5rem' }}>
@@ -199,10 +204,26 @@ export const PositionPreview = ({
             </RowBetween>
             <RowBetween>
               <TYPE.label>
+                <Trans>Strike</Trans>
+              </TYPE.label>
+              <TYPE.label mr="8px">
+                {ticksAtLimit[sorted ? Bound.LOWER : Bound.UPPER] ? '0' : leftPrice?.toSignificant(5) ?? ''}
+              </TYPE.label>
+            </RowBetween>
+            <RowBetween>
+              <TYPE.label>
                 <Trans>Maturity</Trans>
               </TYPE.label>
               <TYPE.label>
-                <Trans>{position?.pool?.fee / 10000}%</Trans>
+                <Trans>
+                  {maturity === Maturity.ONE_DAY
+                    ? '24 hours'
+                    : maturity === Maturity.SEVEN_DAYS
+                    ? '7 days'
+                    : maturity === Maturity.ONE_MONTH
+                    ? '1 month'
+                    : '3 months'}
+                </Trans>
               </TYPE.label>
             </RowBetween>
           </AutoColumn>
