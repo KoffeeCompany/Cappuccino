@@ -78,6 +78,8 @@ import styled from 'styled-components/macro'
 import Badge from 'components/Badge'
 import { Maturity } from 'constants/maturity'
 import { ethers } from 'ethers'
+import { useCreateOptions } from 'state/option/hooks'
+import { OptionType } from 'state/data/generated'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -199,12 +201,11 @@ export default function AddLiquidity({
     [dependentField]: parsedOptionAmounts[dependentField]?.toSignificant(6) ?? '',
   }
 
-  const optionValueCurrency = Field.CURRENCY_A != undefined ? currencies[Field.CURRENCY_A] : undefined
   const optionValueNumber = ethers.utils.parseUnits(formattedOptionAmounts[Field.CURRENCY_A] != '' ? formattedOptionAmounts[Field.CURRENCY_A] : '0', currencies[Field.CURRENCY_A]?.decimals)
   const optionValueCurrencyAmount = 
     Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined 
     ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, optionValueNumber.toNumber()) 
-    : undefined
+    : undefined  
   
   const usdcValues = {
     [Field.CURRENCY_A]: useUSDCValue(parsedAmounts[Field.CURRENCY_A]),
@@ -509,6 +510,18 @@ export default function AddLiquidity({
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
 
+  const isCall = (price && priceUpper && (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper)))
+  const currencyANumber = ethers.utils.parseUnits(formattedAmounts[Field.CURRENCY_A] != '' ? formattedAmounts[Field.CURRENCY_A] : '0', currencies[Field.CURRENCY_A]?.decimals)
+  const currencyBNumber = ethers.utils.parseUnits(formattedAmounts[Field.CURRENCY_B] != '' ? formattedAmounts[Field.CURRENCY_B] : '0', currencies[Field.CURRENCY_B]?.decimals)
+  const notionalValueCurrencyAmount = 
+    isCall ? 
+    (Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined
+    ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, currencyANumber.toNumber()) 
+    : undefined)
+    : (Field.CURRENCY_B != undefined && currencies[Field.CURRENCY_B] != undefined
+      ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_B!]!, currencyBNumber.toNumber()) 
+      : undefined)
+
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice } =
     useRangeHopCallbacks(baseCurrency ?? undefined, quoteCurrency ?? undefined, feeAmount, tickLower, tickUpper, pool)
 
@@ -530,6 +543,23 @@ export default function AddLiquidity({
       } ${!outOfRange ? 'and' : ''} ${!depositBDisabled ? parsedAmounts[Field.CURRENCY_B]?.toSignificant(6) : ''} ${
         !depositBDisabled ? currencies[Field.CURRENCY_B]?.symbol : ''
       }`
+      
+  const createOption = useCreateOptions(
+    baseCurrency ?? undefined,
+    quoteCurrency ?? undefined,
+    feeAmount,
+    baseCurrency ?? undefined,
+    price && priceUpper && 
+    (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
+    ? OptionType.Call
+    : OptionType.Put,
+    ticksAtLimit, 
+    priceLower, 
+    priceUpper,
+    0,
+    0,
+    maturity,
+    optionValueCurrencyAmount)
 
   const Buttons = () =>
     addIsUnsupported ? (
@@ -636,7 +666,7 @@ export default function AddLiquidity({
                   outOfRange={outOfRange}
                   ticksAtLimit={ticksAtLimit}
                   optionValue={optionValueCurrencyAmount}
-                  optionValueCurrency={optionValueCurrency}
+                  notionalValue={notionalValueCurrencyAmount}
                   maturity={maturity}
                 />
               )}

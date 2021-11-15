@@ -14,7 +14,7 @@ export function Review({
   position,
   outOfRange,
   ticksAtLimit,
-  optionValueCurrency,
+  notionalValue,
   optionValue,
   maturity,
 }: {
@@ -25,7 +25,7 @@ export function Review({
   priceUpper?: Price<Currency, Currency>
   outOfRange: boolean
   ticksAtLimit: { [bound in Bound]?: boolean | undefined }
-  optionValueCurrency?: Currency | undefined
+  notionalValue?: CurrencyAmount<Currency>
   optionValue?: CurrencyAmount<Currency>
   maturity?: Maturity
 }) {
@@ -39,7 +39,7 @@ export function Review({
             ticksAtLimit={ticksAtLimit}
             title={'Selected Range'}
             optionTitle={'Option Value'}
-            optionValueCurrency={optionValueCurrency}
+            notionalValue={notionalValue}
             optionValue={optionValue}
             maturity={maturity}
           />

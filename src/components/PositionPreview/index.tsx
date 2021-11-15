@@ -26,7 +26,7 @@ export const PositionPreview = ({
   inRange,
   baseCurrencyDefault,
   ticksAtLimit,
-  optionValueCurrency,
+  notionalValue,
   optionValue,
   maturity,
 }: {
@@ -36,7 +36,7 @@ export const PositionPreview = ({
   inRange: boolean
   baseCurrencyDefault?: Currency | undefined
   ticksAtLimit: { [bound: string]: boolean | undefined }
-  optionValueCurrency?: Currency | undefined
+  notionalValue?: CurrencyAmount<Currency>
   optionValue?: CurrencyAmount<Currency>
   maturity?: Maturity
 }) => {
@@ -195,13 +195,32 @@ export const PositionPreview = ({
           <AutoColumn gap="md">
             <RowBetween>
               <RowFixed>
-                <CurrencyLogo currency={optionValueCurrency} />
-                <TYPE.label ml="8px">{optionValueCurrency?.symbol}</TYPE.label>
+                <CurrencyLogo currency={optionValue?.currency} />
+                <TYPE.label ml="8px">{optionValue?.currency.symbol}</TYPE.label>
               </RowFixed>
               <RowFixed>
                 <TYPE.label mr="8px">{optionValue?.toSignificant(4)}</TYPE.label>
               </RowFixed>
             </RowBetween>
+          </AutoColumn>
+        </LightCard>
+      </AutoColumn>
+
+      <AutoColumn gap="md">
+        <RowBetween>Option parameter</RowBetween>
+
+        <LightCard>
+          <AutoColumn gap="md">
+            <RowBetween>
+              <RowFixed>
+                <CurrencyLogo currency={notionalValue?.currency} />
+                <TYPE.label ml="8px">{notionalValue?.currency.symbol}</TYPE.label>
+              </RowFixed>
+              <RowFixed>
+                <TYPE.label mr="8px">{notionalValue?.toSignificant(4)}</TYPE.label>
+              </RowFixed>
+            </RowBetween>
+            <Break />
             <RowBetween>
               <TYPE.label>
                 <Trans>Strike</Trans>

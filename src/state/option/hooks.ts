@@ -1,12 +1,13 @@
 import { useCreateOptionsData, useOptionIntentions } from 'hooks/useOptionData'
 import { useMemo } from 'react'
 import { OptionType } from 'state/data/generated'
-import { Currency } from '@uniswap/sdk-core'
+import { Currency, Token, Price, CurrencyAmount } from '@uniswap/sdk-core'
 import { Pool, FeeAmount } from '@uniswap/v3-sdk'
 import { useActiveWeb3React } from 'hooks/web3'
-import { Field } from 'state/mint/v3/actions'
+import { Bound, Field } from 'state/mint/v3/actions'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { Maturity } from 'constants/maturity'
+import { ethers } from 'ethers'
 
 export function usePutOptionIntentions() {
   const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions(OptionType.Put)
@@ -37,16 +38,18 @@ export function useCallOptionIntentions() {
 }
 
 export function useCreateOptions(
-  currencyA: Currency,
-  currencyB: Currency,
-  feeAmount: FeeAmount,
-  baseCurrency: Currency,
+  currencyA: Currency | undefined,
+  currencyB: Currency | undefined,
+  feeAmount: FeeAmount | undefined,
+  baseCurrency: Currency | undefined,
   optionType: OptionType,
-  strike: number,
+  ticksAtLimit: { [bound: string]: boolean | undefined },
+  priceLower: Price<Token, Token> | undefined,
+  priceUpper: Price<Token, Token> | undefined,
   currencyAAmount: number,
   currencyBAmount: number,
-  maturity: number,
-  price: number
+  maturity: Maturity | undefined,
+  price: CurrencyAmount<Currency> | undefined
 ) {
   const { account } = useActiveWeb3React()
   // currencies
@@ -70,9 +73,12 @@ export function useCreateOptions(
     [tokenA, tokenB]
   )
 
+  const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB)
+  const leftPrice = isSorted ? priceLower : priceUpper?.invert()
+
   const isCall = optionType == OptionType.Call
   const tokenIn = isCall ? token0 : token1
-  const notional = tokenIn == currencyA.wrapped ? currencyAAmount : currencyBAmount
+  const notional = tokenIn == currencyA?.wrapped ? currencyAAmount : currencyBAmount
   //IERC20 tokenIn = IERC20(isCall ? token0 : token1);
 
   // const maturity = (await currentBlock).timestamp + 10; // 10 seconds
@@ -88,7 +94,10 @@ export function useCreateOptions(
     currencies[Field.CURRENCY_B],
     feeAmount,
     optionType,
-    strike,
+    ethers.utils.parseUnits(
+      ticksAtLimit[isSorted ? Bound.LOWER : Bound.UPPER] ? '0' : leftPrice?.toSignificant(5) ?? '',
+      isSorted ? priceLower?.baseCurrency.decimals : priceUpper?.baseCurrency.decimals
+    ),
     notional,
     maturityTimestamp,
     account,

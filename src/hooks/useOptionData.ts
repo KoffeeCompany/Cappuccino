@@ -8,10 +8,10 @@ import { useActiveWeb3React } from './web3'
 import { abi as IOptionABI } from 'abis/option.json'
 import { Interface } from '@ethersproject/abi'
 import { OptionInterface } from 'abis/types/Option'
-import { Currency } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Pool, FeeAmount } from '@uniswap/v3-sdk'
 import { usePools } from './usePools'
-import { BigNumber } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 
 const OPTION_INTERFACE = new Interface(IOptionABI) as OptionInterface
 
@@ -41,11 +41,11 @@ export function useCreateOptionsData(
   currencyB: Currency | undefined,
   feeAmount: FeeAmount | undefined,
   optionType: OptionType,
-  strike: number,
+  strike: BigNumber,
   notional: number,
   maturity: BigNumber | undefined,
   maker: string | null | undefined,
-  price: number
+  price: CurrencyAmount<Currency> | undefined
 ): void {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { chainId } = useActiveWeb3React()
@@ -91,7 +91,7 @@ export function useCreateOptionsData(
       maturity: maturity,
       maker: maker,
       resolver: resolverAddresses,
-      price: price,
+      price: ethers.utils.parseUnits(price ? price.toSignificant(5) : '0', price?.currency.decimals),
     },
   ])
 }
