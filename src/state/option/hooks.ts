@@ -8,6 +8,8 @@ import { Bound, Field } from 'state/mint/v3/actions'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { Maturity } from 'constants/maturity'
 import { ethers } from 'ethers'
+import { abi as OPTION_ABI } from 'abis/option.json'
+import { useContract } from 'hooks/useContract'
 
 export function usePutOptionIntentions() {
   const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions(OptionType.Put)
@@ -37,6 +39,10 @@ export function useCallOptionIntentions() {
   }, [isLoading, isUninitialized, isError, error, options])
 }
 
+export function useOptionContract(optionAddress?: string, withSignerIfPossible?: boolean) {
+  return useContract(optionAddress, OPTION_ABI, withSignerIfPossible)
+}
+
 export function useCreateOptions(
   currencyA: Currency | undefined,
   currencyB: Currency | undefined,
@@ -46,8 +52,7 @@ export function useCreateOptions(
   ticksAtLimit: { [bound: string]: boolean | undefined },
   priceLower: Price<Token, Token> | undefined,
   priceUpper: Price<Token, Token> | undefined,
-  currencyAAmount: number,
-  currencyBAmount: number,
+  notional: CurrencyAmount<Currency> | undefined,
   maturity: Maturity | undefined,
   price: CurrencyAmount<Currency> | undefined
 ) {
@@ -75,11 +80,6 @@ export function useCreateOptions(
 
   const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB)
   const leftPrice = isSorted ? priceLower : priceUpper?.invert()
-
-  const isCall = optionType == OptionType.Call
-  const tokenIn = isCall ? token0 : token1
-  const notional = tokenIn == currencyA?.wrapped ? currencyAAmount : currencyBAmount
-  //IERC20 tokenIn = IERC20(isCall ? token0 : token1);
 
   // const maturity = (await currentBlock).timestamp + 10; // 10 seconds
   const blockTimestamp = useCurrentBlockTimestamp()

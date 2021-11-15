@@ -1,11 +1,11 @@
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { TransactionResponse } from '@ethersproject/providers'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-core'
 import { AlertTriangle } from 'react-feather'
 import ReactGA from 'react-ga'
 import { ZERO_PERCENT } from '../../constants/misc'
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES } from '../../constants/addresses'
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, OPTION_ADDRESSES, RESOLVER_ADDRESSES } from '../../constants/addresses'
 import { WETH9_EXTENDED } from '../../constants/tokens'
 import { useArgentWalletContract } from '../../hooks/useArgentWalletContract'
 import { useV3NFTPositionManagerContract } from '../../hooks/useContract'
@@ -78,8 +78,9 @@ import styled from 'styled-components/macro'
 import Badge from 'components/Badge'
 import { Maturity } from 'constants/maturity'
 import { ethers } from 'ethers'
-import { useCreateOptions } from 'state/option/hooks'
+import { useCreateOptions, useOptionContract } from 'state/option/hooks'
 import { OptionType } from 'state/data/generated'
+import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -308,7 +309,7 @@ export default function AddLiquidity({
     } else {
       return
     }
-  }
+  } 
 
   async function onAdd() {
     if (!chainId || !library || !account) return
@@ -542,24 +543,108 @@ export default function AddLiquidity({
         !depositADisabled ? currencies[Field.CURRENCY_A]?.symbol : ''
       } ${!outOfRange ? 'and' : ''} ${!depositBDisabled ? parsedAmounts[Field.CURRENCY_B]?.toSignificant(6) : ''} ${
         !depositBDisabled ? currencies[Field.CURRENCY_B]?.symbol : ''
-      }`
-      
-  const createOption = useCreateOptions(
-    baseCurrency ?? undefined,
-    quoteCurrency ?? undefined,
-    feeAmount,
-    baseCurrency ?? undefined,
-    price && priceUpper && 
-    (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
-    ? OptionType.Call
-    : OptionType.Put,
-    ticksAtLimit, 
-    priceLower, 
-    priceUpper,
-    0,
-    0,
-    maturity,
-    optionValueCurrencyAmount)
+      }`    
+
+  const optionAddresses: (string | undefined) = useMemo(() => {
+    if (chainId) {
+      if (OPTION_ADDRESSES[chainId]) {
+        return OPTION_ADDRESSES[chainId]
+      }
+      return undefined
+    }
+    return undefined
+  }, [chainId])
+
+  const resolverAddresses: (string | undefined) = useMemo(() => {
+    if (chainId) {
+      if (RESOLVER_ADDRESSES[chainId]) {
+        return RESOLVER_ADDRESSES[chainId]
+      }
+      return undefined
+    }
+    return undefined
+  }, [chainId])
+  
+  const optionContract = useOptionContract(optionAddresses)
+  const [attempting, setAttempting] = useState(false)
+  const [hash, setHash] = useState<string | undefined>()
+
+  // formatted with tokens
+  const currencyA = baseCurrency ?? undefined
+  const currenyB = quoteCurrency ?? undefined
+  const [tokenA, tokenB, baseToken] = useMemo(
+    () => [currencyA?.wrapped, currencyB?.wrapped, baseCurrency?.wrapped],
+    [currencyA, currencyB, baseCurrency]
+  )
+
+  const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB)
+  const leftPrice = isSorted ? priceLower : priceUpper?.invert()
+
+  // const maturity = (await currentBlock).timestamp + 10; // 10 seconds
+  const blockTimestamp = useCurrentBlockTimestamp()
+  let maturityTimestamp: BigNumber | undefined
+  if (maturity == Maturity.ONE_DAY) maturityTimestamp = blockTimestamp?.add(24 * 60 * 60)
+  if (maturity == Maturity.SEVEN_DAYS) maturityTimestamp = blockTimestamp?.add(7 * 24 * 60 * 60)
+  if (maturity == Maturity.ONE_MONTH) maturityTimestamp = blockTimestamp?.add(30 * 24 * 60 * 60)
+  if (maturity == Maturity.THREE_MONTHS) maturityTimestamp = blockTimestamp?.add(90 * 24 * 60 * 60)
+
+  async function onCreateOption() {
+    if (optionContract) {
+
+      setAttempting(true)
+      await optionContract
+        .createOption({
+          pool: pool,
+          optionType: price == undefined || priceUpper == undefined 
+          ? OptionType.Call 
+          : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
+            ? OptionType.Call
+            : OptionType.Put,
+          strike: ethers.utils.parseUnits(
+            ticksAtLimit[isSorted ? Bound.LOWER : Bound.UPPER] ? '0' : leftPrice?.toSignificant(5) ?? '',
+            isSorted ? priceLower?.baseCurrency.decimals : priceUpper?.baseCurrency.decimals
+          ),
+          notional: ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals),
+          maturity: maturityTimestamp,
+          maker: account,
+          resolver: resolverAddresses,
+          price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals),
+          //gasLimit: 300000 
+        })
+        .then((response: TransactionResponse) => {
+          addTransaction(response, {
+            summary: t`Create option transaction`,
+          })
+          setHash(response.hash)
+        })
+        .catch((error: any) => {
+          setAttempting(false)
+          console.log(error)
+        })
+    }
+    // if (!chainId || !library || !account) return
+
+    // if (!baseCurrency || !quoteCurrency) {
+    //   return
+    // }
+
+    // const res = useCreateOptions(
+    //   baseCurrency ?? undefined,
+    //   quoteCurrency ?? undefined,
+    //   feeAmount,
+    //   baseCurrency ?? undefined,
+    //   price && priceUpper && 
+    //   (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
+    //   ? OptionType.Call
+    //   : OptionType.Put,
+    //   ticksAtLimit, 
+    //   priceLower, 
+    //   priceUpper,
+    //   notionalValueCurrencyAmount,
+    //   maturity,
+    //   optionValueCurrencyAmount
+    // )
+  }
 
   const Buttons = () =>
     addIsUnsupported ? (
@@ -625,7 +710,7 @@ export default function AddLiquidity({
         )}
         <ButtonError
           onClick={() => {
-            expertMode ? onAdd() : setShowConfirm(true)
+            expertMode ? onCreateOption() : setShowConfirm(true)
           }}
           disabled={
             mustCreateSeparately ||
@@ -671,7 +756,7 @@ export default function AddLiquidity({
                 />
               )}
               bottomContent={() => (
-                <ButtonPrimary style={{ marginTop: '1rem' }} onClick={onAdd}>
+                <ButtonPrimary style={{ marginTop: '1rem' }} onClick={onCreateOption}>
                   <Text fontWeight={500} fontSize={20}>
                     <Trans>Create</Trans>
                   </Text>

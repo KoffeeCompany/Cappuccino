@@ -42,7 +42,7 @@ export function useCreateOptionsData(
   feeAmount: FeeAmount | undefined,
   optionType: OptionType,
   strike: BigNumber,
-  notional: number,
+  notional: CurrencyAmount<Currency> | undefined,
   maturity: BigNumber | undefined,
   maker: string | null | undefined,
   price: CurrencyAmount<Currency> | undefined
@@ -87,7 +87,7 @@ export function useCreateOptionsData(
       pool: pool,
       optionType: optionType,
       strike: strike,
-      notional: notional,
+      notional: ethers.utils.parseUnits(notional ? notional.toSignificant(5) : '0', notional?.currency.decimals),
       maturity: maturity,
       maker: maker,
       resolver: resolverAddresses,
