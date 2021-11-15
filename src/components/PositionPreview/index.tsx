@@ -16,19 +16,26 @@ import { ThemeContext } from 'styled-components/macro'
 import JSBI from 'jsbi'
 import { Bound } from 'state/mint/v3/actions'
 import { formatTickPrice } from 'utils/formatTickPrice'
+import { CurrencyAmount } from '@uniswap/sdk-core'
 
 export const PositionPreview = ({
   position,
   title,
+  optionTitle,
   inRange,
   baseCurrencyDefault,
   ticksAtLimit,
+  optionValueCurrency,
+  optionValue,
 }: {
   position: Position
   title?: ReactNode
+  optionTitle?: ReactNode
   inRange: boolean
   baseCurrencyDefault?: Currency | undefined
   ticksAtLimit: { [bound: string]: boolean | undefined }
+  optionValueCurrency?: Currency | undefined
+  optionValue?: CurrencyAmount<Currency>
 }) => {
   const theme = useContext(ThemeContext)
 
@@ -173,6 +180,31 @@ export const PositionPreview = ({
                 {quoteCurrency.symbol} per {baseCurrency.symbol}
               </Trans>
             </TYPE.main>
+          </AutoColumn>
+        </LightCard>
+      </AutoColumn>
+      <AutoColumn gap="md">
+        <RowBetween>{optionTitle ? <TYPE.main>{optionTitle}</TYPE.main> : <div />}</RowBetween>
+
+        <LightCard>
+          <AutoColumn gap="md">
+            <RowBetween>
+              <RowFixed>
+                <CurrencyLogo currency={optionValueCurrency} />
+                <TYPE.label ml="8px">{optionValueCurrency?.symbol}</TYPE.label>
+              </RowFixed>
+              <RowFixed>
+                <TYPE.label mr="8px">{optionValue?.toSignificant(4)}</TYPE.label>
+              </RowFixed>
+            </RowBetween>
+            <RowBetween>
+              <TYPE.label>
+                <Trans>Maturity</Trans>
+              </TYPE.label>
+              <TYPE.label>
+                <Trans>{position?.pool?.fee / 10000}%</Trans>
+              </TYPE.label>
+            </RowBetween>
           </AutoColumn>
         </LightCard>
       </AutoColumn>

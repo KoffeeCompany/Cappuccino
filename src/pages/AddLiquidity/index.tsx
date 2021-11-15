@@ -198,6 +198,9 @@ export default function AddLiquidity({
     [dependentField]: parsedOptionAmounts[dependentField]?.toSignificant(6) ?? '',
   }
 
+  const optionValueCurrency = Field.CURRENCY_A != undefined ? currencies[Field.CURRENCY_A] : undefined
+  const optionValueCurrencyAmount = Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, parseInt(formattedOptionAmounts[Field.CURRENCY_A] != '' ? formattedOptionAmounts[Field.CURRENCY_A] : '0')) : undefined
+  
   const usdcValues = {
     [Field.CURRENCY_A]: useUSDCValue(parsedAmounts[Field.CURRENCY_A]),
     [Field.CURRENCY_B]: useUSDCValue(parsedAmounts[Field.CURRENCY_B]),
@@ -616,7 +619,7 @@ export default function AddLiquidity({
           hash={txHash}
           content={() => (
             <ConfirmationModalContent
-              title={t`Add Liquidity`}
+              title={t`Create option`}
               onDismiss={handleDismissConfirmation}
               topContent={() => (
                 <Review
@@ -627,12 +630,14 @@ export default function AddLiquidity({
                   priceUpper={priceUpper}
                   outOfRange={outOfRange}
                   ticksAtLimit={ticksAtLimit}
+                  optionValue={optionValueCurrencyAmount}
+                  optionValueCurrency={optionValueCurrency}
                 />
               )}
               bottomContent={() => (
                 <ButtonPrimary style={{ marginTop: '1rem' }} onClick={onAdd}>
                   <Text fontWeight={500} fontSize={20}>
-                    <Trans>Add</Trans>
+                    <Trans>Create</Trans>
                   </Text>
                 </ButtonPrimary>
               )}
