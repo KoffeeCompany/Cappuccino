@@ -131,10 +131,10 @@ export default function AddLiquidity({
       : undefined
 
   const baseCurrency = useCurrency(currencyIdA)
-  const currencyB = useCurrency(currencyIdB)
+  const tmpQuoteCurrency = useCurrency(currencyIdB)
   // prevent an error if they input ETH/WETH
   const quoteCurrency =
-    baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
+    baseCurrency && tmpQuoteCurrency && baseCurrency.wrapped.equals(tmpQuoteCurrency.wrapped) ? undefined : tmpQuoteCurrency
 
   const maturity: Maturity | undefined = 
   maturityFromUrl && Object.values(Maturity).includes(Maturity[parseInt(maturityFromUrl)])
@@ -461,9 +461,9 @@ export default function AddLiquidity({
     (newFeeAmount: FeeAmount) => {
       onLeftRangeInput('')
       onRightRangeInput('')
-      history.push(`/add/${currencyIdA}/${currencyIdB}/${newFeeAmount}`)
+      history.push(`/add/${currencyIdA}/${currencyIdB}/${newFeeAmount}/${maturity}`)
     },
-    [currencyIdA, currencyIdB, history, onLeftRangeInput, onRightRangeInput]
+    [currencyIdA, currencyIdB, maturity, history, onLeftRangeInput, onRightRangeInput]
   )
 
   const handleMaturitySelectWithEvent = useCallback(
@@ -476,7 +476,7 @@ export default function AddLiquidity({
       onRightRangeInput('')
       history.push(`/add/${currencyIdA}/${currencyIdB}/${feeAmount}/${maturity_}`)
     },
-    []
+    [currencyIdA, currencyIdB, feeAmount, history, onLeftRangeInput, onRightRangeInput]
   )
 
   // flag for whether pool creation must be a separate tx
@@ -510,17 +510,17 @@ export default function AddLiquidity({
   // get value and prices at ticks
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
-
+  
   const isCall = (price && priceUpper && (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper)))
   const currencyANumber = ethers.utils.parseUnits(formattedAmounts[Field.CURRENCY_A] != '' ? formattedAmounts[Field.CURRENCY_A] : '0', currencies[Field.CURRENCY_A]?.decimals)
   const currencyBNumber = ethers.utils.parseUnits(formattedAmounts[Field.CURRENCY_B] != '' ? formattedAmounts[Field.CURRENCY_B] : '0', currencies[Field.CURRENCY_B]?.decimals)
   const notionalValueCurrencyAmount = 
     isCall ? 
     (Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined
-    ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, currencyANumber.toNumber()) 
+    ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, currencyANumber.toString()) 
     : undefined)
     : (Field.CURRENCY_B != undefined && currencies[Field.CURRENCY_B] != undefined
-      ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_B!]!, currencyBNumber.toNumber()) 
+      ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_B!]!, currencyBNumber.toString()) 
       : undefined)
 
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice } =
@@ -571,7 +571,7 @@ export default function AddLiquidity({
 
   // formatted with tokens
   const currencyA = baseCurrency ?? undefined
-  const currenyB = quoteCurrency ?? undefined
+  const currencyB = quoteCurrency ?? undefined
   const [tokenA, tokenB, baseToken] = useMemo(
     () => [currencyA?.wrapped, currencyB?.wrapped, baseCurrency?.wrapped],
     [currencyA, currencyB, baseCurrency]

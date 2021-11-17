@@ -37,8 +37,7 @@ export function Review({
             position={position}
             inRange={!outOfRange}
             ticksAtLimit={ticksAtLimit}
-            title={'Selected Range'}
-            optionTitle={'Option Value'}
+            title={'Option parameter'}
             notionalValue={notionalValue}
             optionValue={optionValue}
             maturity={maturity}

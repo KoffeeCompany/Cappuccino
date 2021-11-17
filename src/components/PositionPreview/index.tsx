@@ -22,7 +22,6 @@ import { Maturity } from 'constants/maturity'
 export const PositionPreview = ({
   position,
   title,
-  optionTitle,
   inRange,
   baseCurrencyDefault,
   ticksAtLimit,
@@ -32,7 +31,6 @@ export const PositionPreview = ({
 }: {
   position: Position
   title?: ReactNode
-  optionTitle?: ReactNode
   inRange: boolean
   baseCurrencyDefault?: Currency | undefined
   ticksAtLimit: { [bound: string]: boolean | undefined }
@@ -135,42 +133,61 @@ export const PositionPreview = ({
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
-                <Trans>Min Price</Trans>
+                <Trans>Option value</Trans>
               </TYPE.main>
-              <TYPE.mediumHeader textAlign="center">{`${formatTickPrice(
-                priceLower,
-                ticksAtLimit,
-                Bound.LOWER
-              )}`}</TYPE.mediumHeader>
+              <TYPE.mediumHeader textAlign="center">{`${optionValue?.toSignificant(4)}`}</TYPE.mediumHeader>
               <TYPE.main textAlign="center" fontSize="12px">
-                <Trans>
-                  {quoteCurrency.symbol} per {baseCurrency.symbol}
-                </Trans>
+                <Trans>{optionValue?.currency.symbol}</Trans>
               </TYPE.main>
-              <TYPE.small textAlign="center" color={theme.text3} style={{ marginTop: '4px' }}>
-                <Trans>Your position will be 100% composed of {baseCurrency?.symbol} at this price</Trans>
-              </TYPE.small>
             </AutoColumn>
           </LightCard>
 
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
-                <Trans>Max Price</Trans>
+                <Trans>Notional</Trans>
               </TYPE.main>
-              <TYPE.mediumHeader textAlign="center">{`${formatTickPrice(
-                priceUpper,
-                ticksAtLimit,
-                Bound.UPPER
-              )}`}</TYPE.mediumHeader>
+              <TYPE.mediumHeader textAlign="center">{`${notionalValue?.toSignificant(4)}`}</TYPE.mediumHeader>
+              <TYPE.main textAlign="center" fontSize="12px">
+                <Trans>{optionValue?.currency.symbol}</Trans>
+              </TYPE.main>
+            </AutoColumn>
+          </LightCard>
+        </RowBetween>
+        <RowBetween>
+          <LightCard width="48%" padding="8px">
+            <AutoColumn gap="4px" justify="center">
+              <TYPE.main fontSize="12px">
+                <Trans>Strike</Trans>
+              </TYPE.main>
+              <TYPE.mediumHeader textAlign="center">{`${
+                ticksAtLimit[sorted ? Bound.LOWER : Bound.UPPER] ? '0' : leftPrice?.toSignificant(5) ?? ''
+              }`}</TYPE.mediumHeader>
               <TYPE.main textAlign="center" fontSize="12px">
                 <Trans>
                   {quoteCurrency.symbol} per {baseCurrency.symbol}
                 </Trans>
               </TYPE.main>
-              <TYPE.small textAlign="center" color={theme.text3} style={{ marginTop: '4px' }}>
-                <Trans>Your position will be 100% composed of {quoteCurrency?.symbol} at this price</Trans>
-              </TYPE.small>
+            </AutoColumn>
+          </LightCard>
+
+          <LightCard width="48%" padding="8px">
+            <AutoColumn gap="4px" justify="center">
+              <TYPE.main fontSize="12px">
+                <Trans>Maturity</Trans>
+              </TYPE.main>
+              <TYPE.mediumHeader textAlign="center">{`${
+                maturity === Maturity.ONE_DAY
+                  ? '24 hours'
+                  : maturity === Maturity.SEVEN_DAYS
+                  ? '7 days'
+                  : maturity === Maturity.ONE_MONTH
+                  ? '1 month'
+                  : '3 months'
+              }`}</TYPE.mediumHeader>
+              <TYPE.main textAlign="center" fontSize="12px">
+                &nbsp;
+              </TYPE.main>
             </AutoColumn>
           </LightCard>
         </RowBetween>
@@ -185,66 +202,6 @@ export const PositionPreview = ({
                 {quoteCurrency.symbol} per {baseCurrency.symbol}
               </Trans>
             </TYPE.main>
-          </AutoColumn>
-        </LightCard>
-      </AutoColumn>
-      <AutoColumn gap="md">
-        <RowBetween>{optionTitle ? <TYPE.main>{optionTitle}</TYPE.main> : <div />}</RowBetween>
-
-        <LightCard>
-          <AutoColumn gap="md">
-            <RowBetween>
-              <RowFixed>
-                <CurrencyLogo currency={optionValue?.currency} />
-                <TYPE.label ml="8px">{optionValue?.currency.symbol}</TYPE.label>
-              </RowFixed>
-              <RowFixed>
-                <TYPE.label mr="8px">{optionValue?.toSignificant(4)}</TYPE.label>
-              </RowFixed>
-            </RowBetween>
-          </AutoColumn>
-        </LightCard>
-      </AutoColumn>
-
-      <AutoColumn gap="md">
-        <RowBetween>Option parameter</RowBetween>
-
-        <LightCard>
-          <AutoColumn gap="md">
-            <RowBetween>
-              <RowFixed>
-                <CurrencyLogo currency={notionalValue?.currency} />
-                <TYPE.label ml="8px">{notionalValue?.currency.symbol}</TYPE.label>
-              </RowFixed>
-              <RowFixed>
-                <TYPE.label mr="8px">{notionalValue?.toSignificant(4)}</TYPE.label>
-              </RowFixed>
-            </RowBetween>
-            <Break />
-            <RowBetween>
-              <TYPE.label>
-                <Trans>Strike</Trans>
-              </TYPE.label>
-              <TYPE.label mr="8px">
-                {ticksAtLimit[sorted ? Bound.LOWER : Bound.UPPER] ? '0' : leftPrice?.toSignificant(5) ?? ''}
-              </TYPE.label>
-            </RowBetween>
-            <RowBetween>
-              <TYPE.label>
-                <Trans>Maturity</Trans>
-              </TYPE.label>
-              <TYPE.label>
-                <Trans>
-                  {maturity === Maturity.ONE_DAY
-                    ? '24 hours'
-                    : maturity === Maturity.SEVEN_DAYS
-                    ? '7 days'
-                    : maturity === Maturity.ONE_MONTH
-                    ? '1 month'
-                    : '3 months'}
-                </Trans>
-              </TYPE.label>
-            </RowBetween>
           </AutoColumn>
         </LightCard>
       </AutoColumn>
