@@ -13,6 +13,7 @@ const CHAIN_SUBGRAPH_URL: Record<number, string> = {
   [SupportedChainId.OPTIMISM]: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswap-optimism',
 
   [SupportedChainId.LOCALHOST]: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
+  [SupportedChainId.GOERLI]: 'https://api.thegraph.com/subgraphs/name/storres93/uniswap-v3-goerli',
 }
 
 export const api = createApi({

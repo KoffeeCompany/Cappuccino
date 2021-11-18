@@ -13,6 +13,7 @@ const CHAIN_SUBGRAPH_URL: Record<number, string> = {
   [SupportedChainId.OPTIMISM]: 'http://localhost:8000/subgraphs/name/robusta/option',
 
   [SupportedChainId.LOCALHOST]: 'http://localhost:8000/subgraphs/name/robusta/option',
+  [SupportedChainId.GOERLI]: 'https://api.thegraph.com/subgraphs/name/gauddel/robusta-goerli',
 }
 
 export const api = createApi({

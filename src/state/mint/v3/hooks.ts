@@ -276,6 +276,7 @@ export function useV3DerivedMintInfo(
     tickSpaceLimits,
   ])
 
+
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks || {}
 
   // specifies whether the lower and upper ticks is at the exteme bounds

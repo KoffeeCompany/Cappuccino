@@ -1,5 +1,6 @@
 import { FACTORY_ADDRESS as V2_FACTORY_ADDRESS } from '@uniswap/v2-sdk'
 import { FACTORY_ADDRESS as V3_FACTORY_ADDRESS } from '@uniswap/v3-sdk'
+import { supportedChainId } from 'utils/supportedChainId'
 import { constructSameAddressMap } from '../utils/constructSameAddressMap'
 import { SupportedChainId } from './chains'
 
@@ -42,6 +43,7 @@ export const V3_CORE_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap(V3_
   SupportedChainId.ARBITRUM_ONE,
   SupportedChainId.ARBITRUM_RINKEBY,
   SupportedChainId.LOCALHOST,
+  SupportedChainId.GOERLI,
 ])
 export const QUOTER_ADDRESSES: AddressMap = constructSameAddressMap('0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6', [
   SupportedChainId.OPTIMISM,
@@ -63,6 +65,7 @@ export const ENS_REGISTRAR_ADDRESSES: AddressMap = {
   [SupportedChainId.ROPSTEN]: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
   [SupportedChainId.GOERLI]: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
   [SupportedChainId.RINKEBY]: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
+  [SupportedChainId.LOCALHOST]: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
 }
 export const SOCKS_CONTROLLER_ADDRESSES: AddressMap = {
   [SupportedChainId.MAINNET]: '0x65770b5283117639760beA3F867b69b3697a91dd',
@@ -78,18 +81,20 @@ export const V3_MIGRATOR_ADDRESSES: AddressMap = constructSameAddressMap('0xA564
   SupportedChainId.ARBITRUM_RINKEBY,
 ])
 
-export const OPTION_ADDRESSES: AddressMap = constructSameAddressMap('0x4EE6eCAD1c2Dae9f525404De8555724e3c35d07B', [
+export const OPTION_ADDRESSES: AddressMap = constructSameAddressMap('0xb31e9501e24405e0F964E89a7be0e99c6dA9bD6E', [
   SupportedChainId.OPTIMISM,
   SupportedChainId.OPTIMISTIC_KOVAN,
   SupportedChainId.ARBITRUM_ONE,
   SupportedChainId.ARBITRUM_RINKEBY,
+  SupportedChainId.GOERLI,
   SupportedChainId.LOCALHOST,
 ])
 
-export const RESOLVER_ADDRESSES: AddressMap = constructSameAddressMap('0xD84379CEae14AA33C123Af12424A37803F885889', [
+export const RESOLVER_ADDRESSES: AddressMap = constructSameAddressMap('0x14f76cF52708E6BCE3B8CcaF0801975D535cBCeC', [
   SupportedChainId.OPTIMISM,
   SupportedChainId.OPTIMISTIC_KOVAN,
   SupportedChainId.ARBITRUM_ONE,
   SupportedChainId.ARBITRUM_RINKEBY,
+  SupportedChainId.GOERLI,
   SupportedChainId.LOCALHOST,
 ])

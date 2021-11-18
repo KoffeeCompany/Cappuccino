@@ -1,5 +1,5 @@
 overrideExisting: true
-schema: ['https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3','http://localhost:8000/subgraphs/name/robusta/option']
+schema: ['https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3','https://api.thegraph.com/subgraphs/name/gauddel/robusta-goerli']
 documents: 'src/**/!(*.d).{ts,tsx}'
 generates:
   ./src/state/data/generated.ts:

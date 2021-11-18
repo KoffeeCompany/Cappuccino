@@ -78,7 +78,7 @@ import styled from 'styled-components/macro'
 import Badge from 'components/Badge'
 import { Maturity } from 'constants/maturity'
 import { ethers } from 'ethers'
-import { useCreateOptions, useOptionContract } from 'state/option/hooks'
+import { useOptionContract } from 'state/option/hooks'
 import { OptionType } from 'state/data/generated'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 
@@ -205,7 +205,7 @@ export default function AddLiquidity({
   const optionValueNumber = ethers.utils.parseUnits(formattedOptionAmounts[Field.CURRENCY_A] != '' ? formattedOptionAmounts[Field.CURRENCY_A] : '0', currencies[Field.CURRENCY_A]?.decimals)
   const optionValueCurrencyAmount = 
     Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined 
-    ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, optionValueNumber.toNumber()) 
+    ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, optionValueNumber.toString()) 
     : undefined  
   
   const usdcValues = {
@@ -564,7 +564,7 @@ export default function AddLiquidity({
     }
     return undefined
   }, [chainId])
-  
+
   const optionContract = useOptionContract(optionAddresses)
   const [attempting, setAttempting] = useState(false)
   const [hash, setHash] = useState<string | undefined>()
@@ -609,8 +609,8 @@ export default function AddLiquidity({
           maker: account,
           resolver: resolverAddresses,
           price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals),
-          //gasLimit: 300000 
-        })
+        },
+        { gasLimit: 350000 })
         .then((response: TransactionResponse) => {
           addTransaction(response, {
             summary: t`Create option transaction`,
