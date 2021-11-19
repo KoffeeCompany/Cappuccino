@@ -6,7 +6,6 @@ import { useAppSelector } from 'state/hooks'
 import sortByListPriority from 'utils/listSort'
 import UNSUPPORTED_TOKEN_LIST from '../../constants/tokenLists/unsupported.tokenlist.json'
 import BROKEN_LIST from '../../constants/tokenLists/broken.tokenlist.json'
-import LOCALHOST_LIST from '../../constants/tokenLists/localhost.tokenlist.json'
 import { AppState } from '../index'
 import { UNSUPPORTED_LIST_URLS } from './../../constants/lists'
 import { WrappedTokenInfo } from './wrappedTokenInfo'
@@ -44,7 +43,6 @@ function listToTokenMap(list: TokenList): TokenAddressMap {
 }
 
 const TRANSFORMED_DEFAULT_TOKEN_LIST = listToTokenMap(DEFAULT_TOKEN_LIST)
-const TRANSFORMED_LOCALHOST_TOKEN_LIST = listToTokenMap(LOCALHOST_LIST)
 
 export function useAllLists(): AppState['lists']['byUrl'] {
   return useAppSelector((state) => state.lists.byUrl)
@@ -114,8 +112,7 @@ export function useInactiveListUrls(): string[] {
 export function useCombinedActiveList(): TokenAddressMap {
   const activeListUrls = useActiveListUrls()
   const activeTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const activeTokens_default = combineMaps(activeTokens, TRANSFORMED_DEFAULT_TOKEN_LIST)
-  return combineMaps(activeTokens_default, TRANSFORMED_LOCALHOST_TOKEN_LIST)
+  return combineMaps(activeTokens, TRANSFORMED_DEFAULT_TOKEN_LIST)
 }
 
 // list of tokens not supported on interface, used to show warnings and prevent swaps and adds

@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Trans } from '@lingui/macro'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { AutoColumn } from 'components/Column'
 import OptionsGrid from 'components/OptionsGrid'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
@@ -19,7 +19,10 @@ import {
 import { AddRemoveTabs } from 'components/NavigationTabs'
 import { Percent } from '@uniswap/sdk-core'
 import OptionsDetail from 'components/OptionsDetail'
-import { Option } from 'entities/option'
+import { useActiveWeb3React } from 'hooks/web3'
+import { Option } from 'types/option'
+import { CHAIN_SUBGRAPH_URL, queryOption } from 'state/option/slice'
+import { OptionType } from 'state/data/generated'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -73,10 +76,10 @@ export default function Market() {
           </ResponsiveTwoColumns>
           <ResponsiveTwoDetailColumns wide={true} style={{ position: 'relative', height: '100%' }}>
             <AutoColumn gap="lg">
-              <OptionsGrid onRowSelect={onCallSelect} />
+              <OptionsGrid onRowSelect={onCallSelect} optionType={OptionType.Call} />
             </AutoColumn>
             <RightContainer gap="lg">
-              <OptionsGrid onRowSelect={onPutSelect} />
+              <OptionsGrid onRowSelect={onPutSelect}  optionType={OptionType.Put} />
             </RightContainer>
           </ResponsiveTwoDetailColumns>
         </Wrapper>

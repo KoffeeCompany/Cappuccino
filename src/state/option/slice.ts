@@ -1,10 +1,13 @@
+/* eslint-disable prettier/prettier */
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { SupportedChainId } from 'constants/chains'
-import { gql } from 'graphql-request'
-import { graphqlRequestBaseQuery } from 'state/global/graph'
+import request, { gql } from 'graphql-request'
+import { OptionType } from 'state/data/generated'
+import { graphqlRequestOptionQuery } from 'state/global/graph'
+import {Option} from '../../types/option'
 
 // List of supported subgraphs. Note that the app currently only support one active subgraph at a time
-const CHAIN_SUBGRAPH_URL: Record<number, string> = {
+export const CHAIN_SUBGRAPH_URL: Record<number, string> = {
   [SupportedChainId.MAINNET]: 'http://localhost:8000/subgraphs/name/robusta/option',
   [SupportedChainId.RINKEBY]: 'http://localhost:8000/subgraphs/name/robusta/option',
 
@@ -18,7 +21,7 @@ const CHAIN_SUBGRAPH_URL: Record<number, string> = {
 
 export const api = createApi({
   reducerPath: 'optionApi',
-  baseQuery: graphqlRequestBaseQuery(CHAIN_SUBGRAPH_URL),
+  baseQuery: graphqlRequestOptionQuery(CHAIN_SUBGRAPH_URL),
   endpoints: (builder) => ({
     allOptionIntentions: builder.query({
       query: ({ optionType, skip = 0 }) => ({
@@ -47,3 +50,38 @@ export const api = createApi({
     }),
   }),
 })
+
+const query = gql`
+  query allOptionIntentions($optionType: OptionType!, $skip: Int!) {
+    options(first: 1000, skip: $skip, where: { optionType: $optionType }, orderBy: id) {
+      id
+      status
+      buyer
+      strike
+      optionType
+      notional
+      maturity
+      feeToken
+      price
+      maxFeeAmount
+      feeAmount
+      amount0
+      amount1
+      pool
+      token0
+      token1
+      poolFee
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export async function queryOption(url: string, optionType: OptionType) : Promise<Option[]> {
+  return await request(url, query, {
+    optionType: optionType,
+    skip: 0,
+  }).then(data => {
+    return data?.options as Option[]
+  })
+}

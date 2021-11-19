@@ -1,43 +1,70 @@
 import { AgGridReact } from 'ag-grid-react'
 import { useDarkModeManager } from 'state/user/hooks'
-import { Option } from '../../entities/option'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
-import { useCallOptionIntentions, usePutOptionIntentions } from 'state/option/hooks'
-//import request, { gql } from 'graphql-request'
+import { Option, OptionUI } from '../../types/option'
+import { useEffect, useState } from 'react'
+import { CHAIN_SUBGRAPH_URL, queryOption } from 'state/option/slice'
+import { useActiveWeb3React } from 'hooks/web3'
+import { OptionType } from 'state/data/generated'
+import { getContract } from 'utils'
+import ERC20_ABI from 'abis/erc20.json'
+import { Contract } from 'ethers'
 
 interface OptionsGridProps {
   onRowSelect: (row: any) => void
+  optionType: OptionType
 }
 
-export default function OptionsGrid({ onRowSelect }: OptionsGridProps) {
+export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProps) {
   const [darkMode] = useDarkModeManager()
-  const {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isLoading: putIsLoading,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isUninitialized: putIsUninitialized,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isError: putIsError,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    error: putError,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    formattedData: putData,
-  } = usePutOptionIntentions()
-  const {
-    isLoading: callIsLoading,
-    isUninitialized: callIsUninitialized,
-    isError: callIsError,
-    error: callError,
-    formattedData: callData,
-  } = useCallOptionIntentions()
+  // set to default data
+  const [rowData, setRowData] = useState<OptionUI[]>([])
+  const { account, chainId, library } = useActiveWeb3React()
 
-  console.log('>>>>> CALL DATA callIsLoading >>>>>>< : ' + callIsLoading)
-  console.log('>>>>> CALL DATA callIsUninitialized >>>>>>< : ' + callIsUninitialized)
-  console.log('>>>>> CALL DATA callIsError >>>>>>< : ' + callIsError)
-  console.log('>>>>> CALL DATA callError >>>>>>< : ' + callError?.message)
-  console.log('>>>>> CALL DATA callData >>>>>>< : ' + (callData == undefined ? 'undefined' : callData[0]))
+  const toDataUI = (item: Option): OptionUI => {
+    const res: OptionUI = {
+      lp: '-',
+      id: item.id,
+      status: item.status,
+      buyer: item.buyer,
+      strike: item.strike,
+      optionType: item.optionType,
+      notional: item.notional,
+      maturity: item.maturity,
+      feeToken: item.feeToken,
+      price: item.price,
+      maxFeeAmount: item.maxFeeAmount,
+      feeAmount: item.feeAmount,
+      amount0: item.amount0,
+      amount1: item.amount1,
+      pool: item.pool,
+      token0: item.token0,
+      token1: item.token1,
+      poolFee: item.poolFee,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    }
+    return res
+  }
+
+  const subgraphUrl = chainId ? CHAIN_SUBGRAPH_URL[chainId] : undefined
+
+  useEffect(() => {
+    if (!subgraphUrl) {
+      console.log(`Subgraph queries against ChainId ${chainId} are not supported.`)
+    } else {
+      queryOption(subgraphUrl, optionType).then((data) => {
+        const dataUI: OptionUI[] = []
+        data.map((item) => {
+          dataUI.push(toDataUI(item))
+        })
+        setRowData(dataUI)
+        console.log('>>>>>>>data', data)
+      })
+    }
+  }, [optionType])
 
   const state = {
     columnDefs: [
@@ -54,50 +81,7 @@ export default function OptionsGrid({ onRowSelect }: OptionsGridProps) {
       { headerName: 'Delta', field: 'delta', flex: 1 },
       { headerName: 'Beta', field: 'beta', flex: 1 },
     ],
-    rowData: [
-      {
-        lp: 'ETH/Dai',
-        lowerTick: 1500,
-        upperTick: 2600,
-        positionSize: 1,
-        maturity: '7D',
-        strike: 2300,
-        currentPrice: 1990,
-        token0: 0.45,
-        token1: 947.06,
-        value: 0.93,
-        delta: 0.4518,
-        beta: 1,
-      },
-      {
-        lp: 'ETH/WBTC',
-        lowerTick: 0.05,
-        upperTick: 0.1,
-        positionSize: 1,
-        maturity: '10D',
-        strike: 0.07,
-        currentPrice: 0.06,
-        token0: 0.6841,
-        token1: 0.0174,
-        value: 0.9708,
-        delta: 0.6841,
-        beta: 0.545,
-      },
-      {
-        lp: 'ETH/UNI',
-        lowerTick: 50,
-        upperTick: 175,
-        positionSize: 1,
-        maturity: '1M',
-        strike: 120,
-        currentPrice: 105.5143,
-        token0: 0.33,
-        token1: 48.6256,
-        value: 0.79,
-        delta: 0.33,
-        beta: 0.912,
-      },
-    ],
+    rowData: rowData,
   }
 
   return (

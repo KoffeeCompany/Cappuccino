@@ -38,3 +38,38 @@ export function graphqlRequestBaseQuery(
     }
   }
 }
+
+export function graphqlRequestOptionQuery(
+  chain_subgraph_url: Record<number, string>
+): BaseQueryFn<
+  { document: string | DocumentNode; variables?: any },
+  unknown,
+  Pick<ClientError, 'name' | 'message' | 'stack'>,
+  Partial<Pick<ClientError, 'request' | 'response'>>
+> {
+  return async ({ document, variables }, { getState }: BaseQueryApi) => {
+    try {
+      const chainId = (getState() as AppState).application.chainId
+
+      const subgraphUrl = chainId ? chain_subgraph_url[chainId] : undefined
+
+      if (!subgraphUrl) {
+        return {
+          error: {
+            name: 'UnsupportedChainId',
+            message: `Subgraph queries against ChainId ${chainId} are not supported.`,
+            stack: '',
+          },
+        }
+      }
+
+      return { data: await new GraphQLClient(subgraphUrl).request(document, variables), meta: {} }
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const { name, message, stack, request, response } = error
+        return { error: { name, message, stack }, meta: { request, response } }
+      }
+      throw error
+    }
+  }
+}

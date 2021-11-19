@@ -1,0 +1,47 @@
+import { BigNumber } from 'ethers'
+import { OptionStatus, OptionType } from 'state/data/generated'
+
+export interface Option {
+  id: BigNumber
+  status: OptionStatus
+  buyer?: string
+  strike?: BigNumber
+  optionType?: OptionType
+  notional?: BigNumber
+  maturity?: BigNumber
+  feeToken?: string
+  price?: BigNumber
+  maxFeeAmount?: BigNumber
+  feeAmount?: BigNumber
+  amount0?: BigNumber
+  amount1?: BigNumber
+  pool?: string
+  token0?: string
+  token1?: string
+  poolFee?: BigNumber
+  createdAt: BigNumber
+  updatedAt: BigNumber
+}
+
+export interface OptionUI {
+  id: BigNumber
+  lp: string
+  status: OptionStatus
+  buyer?: string
+  strike?: BigNumber
+  optionType?: OptionType
+  notional?: BigNumber
+  maturity?: BigNumber
+  feeToken?: string
+  price?: BigNumber
+  maxFeeAmount?: BigNumber
+  feeAmount?: BigNumber
+  amount0?: BigNumber
+  amount1?: BigNumber
+  pool?: string
+  token0?: string
+  token1?: string
+  poolFee?: BigNumber
+  createdAt: BigNumber
+  updatedAt: BigNumber
+}

@@ -1,5 +1,4 @@
-import { AllOptionIntentionsQuery, OptionType } from 'state/data/generated'
-import { useAllOptionIntentionsQuery } from 'state/data/enhanced'
+import { AllOptionIntentionsQuery, OptionType, useAllOptionIntentionsQuery } from 'state/data/generated'
 import ms from 'ms.macro'
 import { useMultipleContractSingleData } from 'state/multicall/hooks'
 import { useMemo } from 'react'
@@ -15,7 +14,6 @@ import { BigNumber, ethers } from 'ethers'
 
 const OPTION_INTERFACE = new Interface(IOptionABI) as OptionInterface
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useOptionIntentions(optionType: OptionType) {
   const { isLoading, isError, error, isUninitialized, data } = useAllOptionIntentionsQuery(
     {

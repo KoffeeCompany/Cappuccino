@@ -9,19 +9,19 @@ import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { Maturity } from 'constants/maturity'
 import { ethers } from 'ethers'
 
-export function usePutOptionIntentions() {
-  const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions(OptionType.Put)
+// export function usePutOptionIntentions() {
+//   const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions(OptionType.Put)
 
-  return useMemo(() => {
-    return {
-      isLoading,
-      isUninitialized,
-      isError,
-      error,
-      formattedData: !isLoading && !isUninitialized ? options : undefined,
-    }
-  }, [isLoading, isUninitialized, isError, error, options])
-}
+//   return useMemo(() => {
+//     return {
+//       isLoading,
+//       isUninitialized,
+//       isError,
+//       error,
+//       formattedData: !isLoading && !isUninitialized ? options : undefined,
+//     }
+//   }, [isLoading, isUninitialized, isError, error, options])
+// }
 
 export function useCallOptionIntentions() {
   const { isLoading, isUninitialized, isError, error, options } = useOptionIntentions(OptionType.Call)
@@ -36,4 +36,3 @@ export function useCallOptionIntentions() {
     }
   }, [isLoading, isUninitialized, isError, error, options])
 }
-

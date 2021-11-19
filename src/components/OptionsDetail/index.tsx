@@ -12,7 +12,6 @@ import { Input as NumericalInput } from '../NumericalInput'
 import { Currency, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'
 import { darken } from 'polished'
-import { Option } from '../../entities/option'
 import { ButtonGray, ButtonLight, ButtonPrimary } from '../Button'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { useCurrency, useAllTokens } from '../../hooks/Tokens'
@@ -20,6 +19,7 @@ import { filterTokens, useSortedTokensByQuery } from '../SearchModal/filtering'
 import { useTokenComparator } from '../SearchModal/sorting'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { Link } from 'react-router-dom'
+import { Option } from 'types/option'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -133,12 +133,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
   const { account } = useActiveWeb3React()
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
 
-  const currency = option?.lp ? option?.lp.split('/') : undefined
-  const currencyIdA = currency ? currency[0] : '-'
-  const currencyIdB = currency ? currency[1] : '-'
+  const currencyIdA = option != undefined && option.token0 != undefined ? option.token0 : '-'
+  const currencyIdB = option != undefined && option.token1 != undefined ? option.token1 : '-'
   const baseCurrency = useCurrency(currencyIdA)
 
-  const debouncedQuery = currencyIdB
+  const debouncedQuery = currencyIdB!
   const [invertSearchOrder] = useState<boolean>(false)
 
   const tokenComparator = useTokenComparator(invertSearchOrder)
@@ -277,7 +276,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.lowerTick ? option?.lowerTick : 0}
+                value={option?.amount0 ? option?.amount0.toString() : '0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -291,7 +290,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.upperTick ? option?.upperTick : 0}
+                value={option?.amount1 ? option?.amount1.toString() : '0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -305,7 +304,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.maturity ? option?.maturity : ''}
+                value={option?.maturity ? option?.maturity.toString() : ''}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -324,7 +323,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.strike ? option?.strike : 0}
+                value={option?.strike ? option?.strike.toString() : 0}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -338,7 +337,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.currentPrice ? option?.currentPrice : 0}
+                value={option?.price ? option?.price.toString() : '0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -352,7 +351,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.value ? option?.value : 0}
+                value={option?.price ? option?.price.toString() : '0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -371,7 +370,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.delta ? option?.delta : 0}
+                value={'0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -385,7 +384,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.beta ? option?.beta : 0}
+                value={'0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
