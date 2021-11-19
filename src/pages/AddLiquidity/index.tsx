@@ -8,7 +8,7 @@ import { ZERO_PERCENT } from '../../constants/misc'
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, OPTION_ADDRESSES, RESOLVER_ADDRESSES } from '../../constants/addresses'
 import { WETH9_EXTENDED } from '../../constants/tokens'
 import { useArgentWalletContract } from '../../hooks/useArgentWalletContract'
-import { useV3NFTPositionManagerContract } from '../../hooks/useContract'
+import { useOptionContract, useV3NFTPositionManagerContract } from '../../hooks/useContract'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
 import { ThemeContext } from 'styled-components/macro'
@@ -58,7 +58,7 @@ import {
   useRangeHopCallbacks,
   useV3DerivedMintInfo,
 } from 'state/mint/v3/hooks'
-import { FeeAmount, NonfungiblePositionManager } from '@uniswap/v3-sdk'
+import { FeeAmount, NonfungiblePositionManager, Pool } from '@uniswap/v3-sdk'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
 import { useDerivedPositionInfo } from 'hooks/useDerivedPositionInfo'
 import { PositionPreview } from 'components/PositionPreview'
@@ -78,9 +78,10 @@ import styled from 'styled-components/macro'
 import Badge from 'components/Badge'
 import { Maturity } from 'constants/maturity'
 import { ethers } from 'ethers'
-import { useOptionContract } from 'state/option/hooks'
 import { OptionType } from 'state/data/generated'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
+import { abi as OPTION_ABI } from 'abis/option.json'
+import GetOptionContract from 'abis'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -566,19 +567,9 @@ export default function AddLiquidity({
   }, [chainId])
 
   const optionContract = useOptionContract(optionAddresses)
+
   const [attempting, setAttempting] = useState(false)
   const [hash, setHash] = useState<string | undefined>()
-
-  // formatted with tokens
-  const currencyA = baseCurrency ?? undefined
-  const currencyB = quoteCurrency ?? undefined
-  const [tokenA, tokenB, baseToken] = useMemo(
-    () => [currencyA?.wrapped, currencyB?.wrapped, baseCurrency?.wrapped],
-    [currencyA, currencyB, baseCurrency]
-  )
-
-  const isSorted = tokenA && tokenB && tokenA.sortsBefore(tokenB)
-  const leftPrice = isSorted ? priceLower : priceUpper?.invert()
 
   // const maturity = (await currentBlock).timestamp + 10; // 10 seconds
   const blockTimestamp = useCurrentBlockTimestamp()
@@ -586,64 +577,41 @@ export default function AddLiquidity({
   if (maturity == Maturity.ONE_DAY) maturityTimestamp = blockTimestamp?.add(24 * 60 * 60)
   if (maturity == Maturity.SEVEN_DAYS) maturityTimestamp = blockTimestamp?.add(7 * 24 * 60 * 60)
   if (maturity == Maturity.ONE_MONTH) maturityTimestamp = blockTimestamp?.add(30 * 24 * 60 * 60)
-  if (maturity == Maturity.THREE_MONTHS) maturityTimestamp = blockTimestamp?.add(90 * 24 * 60 * 60)
+  if (maturity == Maturity.THREE_MONTHS) maturityTimestamp = blockTimestamp?.add(90 * 24 * 60 * 60)  
 
   async function onCreateOption() {
     if (optionContract) {
 
-      setAttempting(true)
-      await optionContract
-        .createOption({
-          pool: pool,
-          optionType: price == undefined || priceUpper == undefined 
-          ? OptionType.Call 
+      await optionContract.createOption({
+        pool: Pool.getAddress(pool!.token0!, pool!.token1!, pool!.fee!),
+        optionType: price == undefined || priceUpper == undefined 
+          ? 0
           : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
-            ? OptionType.Call
-            : OptionType.Put,
-          strike: ethers.utils.parseUnits(
-            ticksAtLimit[isSorted ? Bound.LOWER : Bound.UPPER] ? '0' : leftPrice?.toSignificant(5) ?? '',
-            isSorted ? priceLower?.baseCurrency.decimals : priceUpper?.baseCurrency.decimals
-          ),
+            ? 0
+            : 1,
+        strike: price == undefined || priceUpper == undefined 
+        ? tickLower!
+        : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
+          ? tickLower!
+          : tickUpper!,
           notional: ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals),
-          maturity: maturityTimestamp,
-          maker: account,
-          resolver: resolverAddresses,
-          price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals),
-        },
-        { gasLimit: 350000 })
-        .then((response: TransactionResponse) => {
+          maturity: maturityTimestamp!.toString(),
+          maker: account!,
+          resolver: resolverAddresses!,
+          price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals), 
+      },{gasLimit: 3500000, value:ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals)})
+      .then((response: TransactionResponse) => {
           addTransaction(response, {
             summary: t`Create option transaction`,
           })
           setHash(response.hash)
+          console.log(response.hash)
         })
         .catch((error: any) => {
           setAttempting(false)
           console.log(error)
         })
     }
-    // if (!chainId || !library || !account) return
-
-    // if (!baseCurrency || !quoteCurrency) {
-    //   return
-    // }
-
-    // const res = useCreateOptions(
-    //   baseCurrency ?? undefined,
-    //   quoteCurrency ?? undefined,
-    //   feeAmount,
-    //   baseCurrency ?? undefined,
-    //   price && priceUpper && 
-    //   (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
-    //   ? OptionType.Call
-    //   : OptionType.Put,
-    //   ticksAtLimit, 
-    //   priceLower, 
-    //   priceUpper,
-    //   notionalValueCurrencyAmount,
-    //   maturity,
-    //   optionValueCurrencyAmount
-    // )
   }
 
   const Buttons = () =>

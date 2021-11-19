@@ -8,6 +8,7 @@ import { abi as QuoterABI } from '@uniswap/v3-periphery/artifacts/contracts/lens
 import { abi as V2MigratorABI } from '@uniswap/v3-periphery/artifacts/contracts/V3Migrator.sol/V3Migrator.json'
 import { abi as IUniswapV2Router02ABI } from '@uniswap/v2-periphery/build/IUniswapV2Router02.json'
 import { abi as MulticallABI } from '@uniswap/v3-periphery/artifacts/contracts/lens/UniswapInterfaceMulticall.sol/UniswapInterfaceMulticall.json'
+import { abi as OPTION_ABI } from 'abis/option.json'
 
 import ARGENT_WALLET_DETECTOR_ABI from 'abis/argent-wallet-detector.json'
 import ENS_PUBLIC_RESOLVER_ABI from 'abis/ens-public-resolver.json'
@@ -127,6 +128,10 @@ export function useUniContract() {
 
 export function useStakingContract(stakingAddress?: string, withSignerIfPossible?: boolean) {
   return useContract(stakingAddress, STAKING_REWARDS_ABI, withSignerIfPossible)
+}
+
+export function useOptionContract(optionAddress?: string, withSignerIfPossible?: boolean) {
+  return useContract(optionAddress, OPTION_ABI, withSignerIfPossible)
 }
 
 export function useV3NFTPositionManagerContract(withSignerIfPossible?: boolean): NonfungiblePositionManager | null {
