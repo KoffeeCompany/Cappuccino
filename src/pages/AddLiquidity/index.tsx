@@ -582,6 +582,8 @@ export default function AddLiquidity({
   async function onCreateOption() {
     if (optionContract) {
 
+      setAttempting(true)
+      
       await optionContract.createOption({
         pool: Pool.getAddress(pool!.token0!, pool!.token1!, pool!.fee!),
         optionType: price == undefined || priceUpper == undefined 

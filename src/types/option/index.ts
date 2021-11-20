@@ -4,6 +4,8 @@ import { OptionStatus, OptionType } from 'state/data/generated'
 export interface Option {
   id: BigNumber
   status: OptionStatus
+  maker: string
+  resolver?: string
   buyer?: string
   strike?: BigNumber
   optionType?: OptionType
@@ -27,6 +29,8 @@ export interface OptionUI {
   id: BigNumber
   lp: string
   status: OptionStatus
+  maker: string
+  resolver?: string
   buyer?: string
   strike?: BigNumber
   optionType?: OptionType
@@ -44,4 +48,5 @@ export interface OptionUI {
   poolFee?: BigNumber
   createdAt: BigNumber
   updatedAt: BigNumber
+  originalItem: Option
 }

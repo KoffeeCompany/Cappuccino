@@ -29,6 +29,8 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
       id: item.id,
       status: item.status,
       buyer: item.buyer,
+      maker: item.maker,
+      resolver: item.resolver,
       strike: item.strike,
       optionType: item.optionType,
       notional: item.notional,
@@ -45,6 +47,7 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
       poolFee: item.poolFee,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
+      originalItem: item,
     }
     return res
   }

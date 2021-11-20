@@ -20,7 +20,7 @@ import { AddRemoveTabs } from 'components/NavigationTabs'
 import { Percent } from '@uniswap/sdk-core'
 import OptionsDetail from 'components/OptionsDetail'
 import { useActiveWeb3React } from 'hooks/web3'
-import { Option } from 'types/option'
+import { Option, OptionUI } from 'types/option'
 import { CHAIN_SUBGRAPH_URL, queryOption } from 'state/option/slice'
 import { OptionType } from 'state/data/generated'
 
@@ -31,12 +31,12 @@ export default function Market() {
   const [callValue, setTypedCallValue] = useState({})
   const [putValue, setTypedPutValue] = useState({})
 
-  const onCallSelect = useCallback((callRow: Option) => {
-    setTypedCallValue(callRow)
+  const onCallSelect = useCallback((callRow: OptionUI) => {
+    setTypedCallValue(callRow.originalItem)
   }, [])
 
-  const onPutSelect = useCallback((putRow: Option) => {
-    setTypedPutValue(putRow)
+  const onPutSelect = useCallback((putRow: OptionUI) => {
+    setTypedPutValue(putRow.originalItem)
   }, [])
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Trans } from '@lingui/macro'
+import { t, Trans } from '@lingui/macro'
 import { AutoColumn } from 'components/Column'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { RowBetween, RowFixed } from '../Row'
@@ -18,8 +18,14 @@ import { useCurrency, useAllTokens } from '../../hooks/Tokens'
 import { filterTokens, useSortedTokensByQuery } from '../SearchModal/filtering'
 import { useTokenComparator } from '../SearchModal/sorting'
 import { useWalletModalToggle } from '../../state/application/hooks'
-import { Link } from 'react-router-dom'
 import { Option } from 'types/option'
+import { OPTION_ADDRESSES } from 'constants/addresses'
+import { useOptionContract } from 'hooks/useContract'
+import { TransactionResponse } from '@ethersproject/providers'
+import { useIsExpertMode } from 'state/user/hooks'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { BigNumber, ethers } from 'ethers'
+import GetOptionContract from 'abis'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -130,8 +136,10 @@ interface OptionsDetailProps {
 export default function OptionsDetail({ onCurrencySelect, option, pair = null }: OptionsDetailProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [modalOpen, setModalOpen] = useState(false)
-  const { account } = useActiveWeb3React()
+  const { account, chainId, library } = useActiveWeb3React()
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
+  const expertMode = useIsExpertMode()
+  const addTransaction = useTransactionAdder()
 
   const currencyIdA = option != undefined && option.token0 != undefined ? option.token0 : '-'
   const currencyIdB = option != undefined && option.token1 != undefined ? option.token1 : '-'
@@ -156,6 +164,89 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
   const quoteCurrency =
     baseCurrency && currencyB && baseCurrency.wrapped.equals(currencyB.wrapped) ? undefined : currencyB
 
+  const optionAddresses: string | undefined = useMemo(() => {
+    if (chainId) {
+      if (OPTION_ADDRESSES[chainId]) {
+        return OPTION_ADDRESSES[chainId]
+      }
+      return undefined
+    }
+    return undefined
+  }, [chainId])
+
+  const [attempting, setAttempting] = useState(false)
+  const [hash, setHash] = useState<string | undefined>()
+
+  /*
+  buyOption(
+      tokenId_: BigNumberish,
+      optionData_: {
+        pool: string;
+        optionType: BigNumberish;
+        strike: BigNumberish;
+        notional: BigNumberish;
+        maturity: BigNumberish;
+        maker: string;
+        resolver: string;
+        price: BigNumberish;
+      }
+  */
+
+  const optionContract = useOptionContract(optionAddresses)
+
+  // const provider = new ethers.providers.Web3Provider(window.ethereum!)
+  // const signer = provider.getSigner()
+
+  // const toto = GetOptionContract(optionAddresses!, signer)
+  // toto.buyOption()
+
+  async function onBuyOption() {
+    if (optionContract) {
+      setAttempting(true)
+
+      console.log('>>>>>>>>>option', {
+        pool: option?.pool,
+        optionType: option && option.optionType ? (option?.optionType?.toUpperCase() == 'CALL' ? 0 : 1) : 0,
+        strike: option && option.strike ? BigNumber.from(option?.strike) : undefined,
+        notional: option && option.notional ? BigNumber.from(option?.notional) : undefined,
+        maturity: option && option.maturity ? BigNumber.from(option?.maturity) : undefined,
+        maker: option?.maker,
+        resolver: option?.resolver,
+        price: option && option.price ? BigNumber.from(option?.price) : undefined,
+      })
+
+      await optionContract
+        .buyOption(
+          option && option.id ? BigNumber.from(option?.id) : undefined,
+          {
+            pool: option?.pool,
+            optionType: option && option.optionType ? (option?.optionType?.toUpperCase() == 'CALL' ? 0 : 1) : 0,
+            strike: option && option.strike ? BigNumber.from(option?.strike) : undefined,
+            notional: option && option.notional ? BigNumber.from(option?.notional) : undefined,
+            maturity: option && option.maturity ? BigNumber.from(option?.maturity) : undefined,
+            maker: option?.maker,
+            resolver: option?.resolver,
+            price: option && option.price ? BigNumber.from(option?.price) : undefined,
+          },
+          {
+            gasLimit: 3500000,
+            value: option && option.price ? BigNumber.from(option?.price) : undefined,
+          }
+        )
+        .then((response: TransactionResponse) => {
+          addTransaction(response, {
+            summary: t`Buy option transaction`,
+          })
+          setHash(response.hash)
+          console.log(response.hash)
+        })
+        .catch((error: any) => {
+          setAttempting(false)
+          console.log(error)
+        })
+    }
+  }
+
   const Buttons = () =>
     !account ? (
       <ButtonLight onClick={toggleWalletModal} $borderRadius="12px" padding={'12px'}>
@@ -163,8 +254,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
       </ButtonLight>
     ) : (
       <ButtonPrimary
-        as={Link}
-        to="/add/ETH"
+        onClick={onBuyOption}
         style={{ backgroundColor: '#1abb96', width: '100%', borderRadius: '8px' }}
         padding="8px"
         margin="20px"
