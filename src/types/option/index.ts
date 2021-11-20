@@ -35,7 +35,7 @@ export interface OptionUI {
   strike?: BigNumber
   optionType?: OptionType
   notional?: BigNumber
-  maturity?: BigNumber
+  maturity?: string
   feeToken?: string
   price?: BigNumber
   maxFeeAmount?: BigNumber

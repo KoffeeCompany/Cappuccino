@@ -10,6 +10,8 @@ import { useActiveWeb3React } from 'hooks/web3'
 import { OptionType } from 'state/data/generated'
 import { formatUnits } from 'ethers/lib/utils'
 import { format } from 'date-fns'
+import { useAllTokens, useCurrency } from 'hooks/Tokens'
+import { BigNumber, ethers } from 'ethers'
 
 interface OptionsGridProps {
   onRowSelect: (row: any) => void
@@ -32,9 +34,28 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
   const [rowData, setRowData] = useState<OptionUI[]>([])
   const { account, chainId, library } = useActiveWeb3React()
 
+  const allTokens = useAllTokens()
+
+  const findSymbol = (token: string) => {
+    const tokenKey = Object.keys(allTokens).find((key) => {
+      return key.toLowerCase() === token.toLowerCase()
+    })
+    return tokenKey ? allTokens[tokenKey].symbol : '-'
+  }
+
+  const timestamp = Date.now() / 1000
+
+  const formatMaturity = (maturity: BigNumber): string => {
+    let remainTimeStamp = maturity ? BigNumber.from(maturity).sub(timestamp.toFixed()) : ethers.constants.Zero
+    if (remainTimeStamp.lte(0)) {
+      remainTimeStamp = ethers.constants.Zero
+    }
+    return remainTimeStamp.eq(0) ? 'Expired' : `${(remainTimeStamp.toNumber() / (3600 * 24)).toFixed()} days`
+  }
+
   const toDataUI = (item: Option): OptionUI => {
     const res: OptionUI = {
-      lp: '-',
+      lp: `${findSymbol(item.token0!)}/${findSymbol(item.token1!)}`,
       id: item.id,
       status: item.status,
       buyer: item.buyer,
@@ -43,7 +64,7 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
       strike: item.strike,
       optionType: item.optionType,
       notional: item.notional,
-      maturity: item.maturity,
+      maturity: formatMaturity(item.maturity!),
       feeToken: item.feeToken,
       price: item.price,
       maxFeeAmount: item.maxFeeAmount,
@@ -51,8 +72,8 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
       amount0: item.amount0,
       amount1: item.amount1,
       pool: item.pool,
-      token0: item.token0,
-      token1: item.token1,
+      token0: findSymbol(item.token0!),
+      token1: findSymbol(item.token1!),
       poolFee: item.poolFee,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
