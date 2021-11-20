@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { t, Trans } from '@lingui/macro'
 import { AutoColumn } from 'components/Column'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
@@ -26,6 +26,8 @@ import { useIsExpertMode } from 'state/user/hooks'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { BigNumber, ethers } from 'ethers'
 import GetOptionContract from 'abis'
+import { formatUnits } from 'ethers/lib/utils'
+import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -128,12 +130,16 @@ const CurrencySelect = styled(ButtonGray)<{ selected: boolean; hideInput?: boole
 `
 
 interface OptionsDetailProps {
-  onCurrencySelect?: (currency: Currency) => void
   option?: Option | undefined
-  pair?: Pair | null
 }
 
-export default function OptionsDetail({ onCurrencySelect, option, pair = null }: OptionsDetailProps) {
+function formatNumber(value: any) {
+  return Math.floor(value)
+    .toString()
+    .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+}
+
+export default function OptionsDetail({ option }: OptionsDetailProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [modalOpen, setModalOpen] = useState(false)
   const { account, chainId, library } = useActiveWeb3React()
@@ -231,6 +237,32 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
       </ButtonPrimary>
     )
 
+  const options: Intl.DateTimeFormatOptions = {
+    dateStyle: 'medium',
+    hourCycle: 'h24',
+    timeStyle: 'long',
+  }
+
+  const timestamp = Date.now() / 1000
+  let remainingTime: Date | undefined = undefined
+  const remainTimeStamp = useRef<BigNumber>(ethers.constants.Zero)
+  useEffect(() => {
+    if (option != undefined && option.maturity != undefined) {
+      remainTimeStamp.current = option.maturity
+        ? BigNumber.from(option?.maturity).sub(timestamp.toFixed())
+        : ethers.constants.Zero
+      console.log('>>>>>>>remainTimeStamp', remainTimeStamp?.toString())
+      if (remainTimeStamp.current.lte(0)) {
+        remainTimeStamp.current = ethers.constants.Zero
+      }
+      remainingTime = remainTimeStamp
+        ? new Date(BigNumber.from(timestamp.toFixed()).add(remainTimeStamp.current).toNumber() * 1000)
+        : undefined
+      console.log('>>>>>>>option', option)
+      console.log('>>>>>>>remainTimeStamp', remainTimeStamp.current.toString())
+    }
+  }, [option])
+
   return (
     <>
       <AutoColumn gap="sm">
@@ -245,25 +277,17 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
                 hideInput={true}
                 className="open-currency-select-button"
                 onClick={() => {
-                  if (onCurrencySelect) {
-                    setModalOpen(true)
-                  }
+                  // if (onCurrencySelect) {
+                  //   setModalOpen(true)
+                  // }
                 }}
               >
                 <Aligner>
                   <RowFixed>
-                    {pair ? (
-                      <span style={{ marginRight: '0.5rem' }}>
-                        <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
-                      </span>
-                    ) : baseCurrency ? (
+                    {baseCurrency ? (
                       <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={baseCurrency} size={'24px'} />
                     ) : null}
-                    {pair ? (
-                      <StyledTokenName className="pair-name-container">
-                        {pair?.token0.symbol}:{pair?.token1.symbol}
-                      </StyledTokenName>
-                    ) : (
+                    {
                       <StyledTokenName
                         className="token-symbol-container"
                         active={Boolean(baseCurrency && baseCurrency.symbol)}
@@ -274,9 +298,8 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
                             baseCurrency.symbol.slice(baseCurrency.symbol.length - 5, baseCurrency.symbol.length)
                           : baseCurrency?.symbol) || <Trans>Select a token</Trans>}
                       </StyledTokenName>
-                    )}
+                    }
                   </RowFixed>
-                  {onCurrencySelect && <StyledDropDown selected={!!baseCurrency} />}
                 </Aligner>
               </CurrencySelect>
             </Container>
@@ -289,25 +312,17 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
                 hideInput={true}
                 className="open-currency-select-button"
                 onClick={() => {
-                  if (onCurrencySelect) {
-                    setModalOpen(true)
-                  }
+                  // if (onCurrencySelect) {
+                  //   setModalOpen(true)
+                  // }
                 }}
               >
                 <Aligner>
                   <RowFixed>
-                    {pair ? (
-                      <span style={{ marginRight: '0.5rem' }}>
-                        <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
-                      </span>
-                    ) : quoteCurrency ? (
+                    {quoteCurrency ? (
                       <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={quoteCurrency} size={'24px'} />
                     ) : null}
-                    {pair ? (
-                      <StyledTokenName className="pair-name-container">
-                        {pair?.token0.symbol}:{pair?.token1.symbol}
-                      </StyledTokenName>
-                    ) : (
+                    {
                       <StyledTokenName
                         className="token-symbol-container"
                         active={Boolean(quoteCurrency && quoteCurrency.symbol)}
@@ -318,9 +333,8 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
                             quoteCurrency.symbol.slice(quoteCurrency.symbol.length - 5, quoteCurrency.symbol.length)
                           : quoteCurrency?.symbol) || <Trans>Select a token</Trans>}
                       </StyledTokenName>
-                    )}
+                    }
                   </RowFixed>
-                  {onCurrencySelect && <StyledDropDown selected={!!quoteCurrency} />}
                 </Aligner>
               </CurrencySelect>
             </Container>
@@ -330,11 +344,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
           <ResponsiveThreeColumns wide={true} style={{ position: 'relative' }}>
             <Container>
               <InputTitle fontSize={13} textAlign="left">
-                <Trans>Lower tick</Trans>
+                <Trans>Notional</Trans>
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.amount0 ? option?.amount0.toString() : '0'}
+                value={option?.notional ? formatUnits(option?.notional) : '0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -344,11 +358,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
             </Container>
             <Container>
               <InputTitle fontSize={13} textAlign="left">
-                <Trans>Upper tick</Trans>
+                <Trans>Strike</Trans>
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.amount1 ? option?.amount1.toString() : '0'}
+                value={option?.strike ? formatNumber(option?.strike) : '0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -362,7 +376,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.maturity ? option?.maturity.toString() : ''}
+                value={
+                  remainTimeStamp.current.eq(0)
+                    ? 'Expired'
+                    : `${(remainTimeStamp.current.toNumber() / (3600 * 24)).toFixed()} days`
+                }
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -377,11 +395,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
           <ResponsiveThreeColumns wide={true} style={{ position: 'relative' }}>
             <Container>
               <InputTitle fontSize={13} textAlign="left">
-                <Trans>Strike</Trans>
+                <Trans>Status</Trans>
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.strike ? option?.strike.toString() : 0}
+                value={option?.status ? option?.status : ''}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -391,11 +409,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
             </Container>
             <Container>
               <InputTitle fontSize={13} textAlign="left">
-                <Trans>Current Price</Trans>
+                <Trans>Premium</Trans>
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.price ? option?.price.toString() : '0'}
+                value={option?.price ? formatUnits(option?.price) : '0'}
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -404,23 +422,12 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               />
             </Container>
             <Container>
-              <InputTitle fontSize={13} textAlign="left">
-                <Trans>Value</Trans>
-              </InputTitle>
-              <StyledInput
-                className="rate-input-0"
-                value={option?.price ? option?.price.toString() : '0'}
-                fontSize="20px"
-                disabled={true}
-                onUserInput={() => {
-                  //
-                }}
-              />
+              <Buttons />
             </Container>
           </ResponsiveThreeColumns>
         </RowBetween>
 
-        <RowBetween>
+        {/* <RowBetween>
           <ResponsiveThreeColumns wide={true} style={{ position: 'relative' }}>
             <Container>
               <InputTitle fontSize={13} textAlign="left">
@@ -454,7 +461,7 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
               <Buttons />
             </Container>
           </ResponsiveThreeColumns>
-        </RowBetween>
+        </RowBetween> */}
       </AutoColumn>
     </>
   )

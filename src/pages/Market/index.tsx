@@ -31,13 +31,14 @@ export default function Market() {
   const [callValue, setTypedCallValue] = useState({})
   const [putValue, setTypedPutValue] = useState({})
 
-  const onCallSelect = useCallback((callRow: OptionUI) => {
+  const onCallSelect = (callRow: OptionUI) => {
     setTypedCallValue(callRow.originalItem)
-  }, [])
+    console.log('>>>>>>>>>callRow.originalItem', callRow.originalItem)
+  }
 
-  const onPutSelect = useCallback((putRow: OptionUI) => {
+  const onPutSelect = (putRow: OptionUI) => {
     setTypedPutValue(putRow.originalItem)
-  }, [])
+  }
 
   return (
     <>

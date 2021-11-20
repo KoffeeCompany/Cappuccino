@@ -8,9 +8,8 @@ import { useEffect, useState } from 'react'
 import { CHAIN_SUBGRAPH_URL, queryOption } from 'state/option/slice'
 import { useActiveWeb3React } from 'hooks/web3'
 import { OptionType } from 'state/data/generated'
-import { getContract } from 'utils'
-import ERC20_ABI from 'abis/erc20.json'
-import { Contract } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils'
+import { format } from 'date-fns'
 
 interface OptionsGridProps {
   onRowSelect: (row: any) => void
@@ -21,6 +20,10 @@ function formatNumber(params: any) {
   return Math.floor(params.value)
     .toString()
     .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+}
+
+function formUnits(params: any) {
+  return formatUnits(params.value)
 }
 
 export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProps) {
@@ -78,17 +81,15 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
   const state = {
     columnDefs: [
       { headerName: 'LP', field: 'lp', flex: 1 },
-      { headerName: 'Lower tick', field: 'lowerTick', flex: 1 },
-      { headerName: 'Upper tick', field: 'upperTick', flex: 1 },
-      { headerName: 'Position size', field: 'positionSize', flex: 1 },
+      { headerName: 'Notional', field: 'notional', flex: 1, valueFormatter: formUnits },
       { headerName: 'Maturity', field: 'maturity', flex: 1 },
       { headerName: 'Strike', field: 'strike', flex: 1, valueFormatter: formatNumber },
-      { headerName: 'Current price', field: 'currentPrice', flex: 1, valueFormatter: formatNumber },
+      { headerName: 'Value', field: 'price', flex: 1, valueFormatter: formUnits },
       { headerName: 'Token 0', field: 'token0', flex: 1 },
       { headerName: 'Token 1', field: 'token1', flex: 1 },
-      { headerName: 'Value (ETH)', field: 'value', flex: 1 },
-      { headerName: 'Delta', field: 'delta', flex: 1 },
-      { headerName: 'Beta', field: 'beta', flex: 1 },
+      { headerName: 'Status', field: 'status', flex: 1 },
+      // { headerName: 'Delta', field: 'delta', flex: 1 },
+      // { headerName: 'Beta', field: 'beta', flex: 1 },
     ],
     rowData: rowData,
   }
