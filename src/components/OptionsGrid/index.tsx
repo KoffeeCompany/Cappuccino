@@ -17,6 +17,12 @@ interface OptionsGridProps {
   optionType: OptionType
 }
 
+function formatNumber(params: any) {
+  return Math.floor(params.value)
+    .toString()
+    .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+}
+
 export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProps) {
   const [darkMode] = useDarkModeManager()
   // set to default data
@@ -76,8 +82,8 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
       { headerName: 'Upper tick', field: 'upperTick', flex: 1 },
       { headerName: 'Position size', field: 'positionSize', flex: 1 },
       { headerName: 'Maturity', field: 'maturity', flex: 1 },
-      { headerName: 'Strike', field: 'strike', flex: 1 },
-      { headerName: 'Current price', field: 'currentPrice', flex: 1 },
+      { headerName: 'Strike', field: 'strike', flex: 1, valueFormatter: formatNumber },
+      { headerName: 'Current price', field: 'currentPrice', flex: 1, valueFormatter: formatNumber },
       { headerName: 'Token 0', field: 'token0', flex: 1 },
       { headerName: 'Token 1', field: 'token1', flex: 1 },
       { headerName: 'Value (ETH)', field: 'value', flex: 1 },

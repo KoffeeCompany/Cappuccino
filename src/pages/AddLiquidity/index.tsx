@@ -176,7 +176,7 @@ export default function AddLiquidity({
   const { onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onStartPriceInput, onOptionValueInput } =
     useV3MintActionHandlers(noLiquidity)
 
-  const isValid = !errorMessage && !invalidRange
+  const isValid = !errorMessage && !invalidRange && maturity != undefined
 
   // modal and loading
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
@@ -720,8 +720,12 @@ export default function AddLiquidity({
                   priceUpper={priceUpper}
                   outOfRange={outOfRange}
                   ticksAtLimit={ticksAtLimit}
+                  strike={price == undefined || priceUpper == undefined 
+                    ? tickLower!
+                    : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
+                      ? tickLower!
+                      : tickUpper!}
                   optionValue={optionValueCurrencyAmount}
-                  notionalValue={notionalValueCurrencyAmount}
                   maturity={maturity}
                 />
               )}

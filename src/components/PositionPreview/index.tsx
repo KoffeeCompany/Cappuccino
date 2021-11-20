@@ -24,8 +24,8 @@ export const PositionPreview = ({
   title,
   inRange,
   baseCurrencyDefault,
+  strike,
   ticksAtLimit,
-  notionalValue,
   optionValue,
   maturity,
 }: {
@@ -33,9 +33,9 @@ export const PositionPreview = ({
   title?: ReactNode
   inRange: boolean
   baseCurrencyDefault?: Currency | undefined
-  ticksAtLimit: { [bound: string]: boolean | undefined }
-  notionalValue?: CurrencyAmount<Currency>
+  strike?: number
   optionValue?: CurrencyAmount<Currency>
+  ticksAtLimit: { [bound: string]: boolean | undefined }
   maturity?: Maturity
 }) => {
   const theme = useContext(ThemeContext)
@@ -59,16 +59,11 @@ export const PositionPreview = ({
 
   const price = sorted ? position.pool.priceOf(position.pool.token0) : position.pool.priceOf(position.pool.token1)
 
-  const priceLower = sorted ? position.token0PriceLower : position.token0PriceUpper.invert()
-  const priceUpper = sorted ? position.token0PriceUpper : position.token0PriceLower.invert()
-
   const handleRateChange = useCallback(() => {
     setBaseCurrency(quoteCurrency)
   }, [quoteCurrency])
 
   const removed = position?.liquidity && JSBI.equal(position?.liquidity, JSBI.BigInt(0))
-
-  const leftPrice = sorted ? priceUpper?.invert() : priceLower
 
   return (
     <AutoColumn gap="md" style={{ marginTop: '0.5rem' }}>
@@ -141,28 +136,12 @@ export const PositionPreview = ({
               </TYPE.main>
             </AutoColumn>
           </LightCard>
-
-          <LightCard width="48%" padding="8px">
-            <AutoColumn gap="4px" justify="center">
-              <TYPE.main fontSize="12px">
-                <Trans>Notional</Trans>
-              </TYPE.main>
-              <TYPE.mediumHeader textAlign="center">{`${notionalValue?.toSignificant(4)}`}</TYPE.mediumHeader>
-              <TYPE.main textAlign="center" fontSize="12px">
-                <Trans>{optionValue?.currency.symbol}</Trans>
-              </TYPE.main>
-            </AutoColumn>
-          </LightCard>
-        </RowBetween>
-        <RowBetween>
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
                 <Trans>Strike</Trans>
               </TYPE.main>
-              <TYPE.mediumHeader textAlign="center">{`${
-                ticksAtLimit[sorted ? Bound.LOWER : Bound.UPPER] ? '0' : leftPrice?.toSignificant(5) ?? ''
-              }`}</TYPE.mediumHeader>
+              <TYPE.mediumHeader>{`${strike}`}</TYPE.mediumHeader>
               <TYPE.main textAlign="center" fontSize="12px">
                 <Trans>
                   {quoteCurrency.symbol} per {baseCurrency.symbol}
@@ -170,7 +149,8 @@ export const PositionPreview = ({
               </TYPE.main>
             </AutoColumn>
           </LightCard>
-
+        </RowBetween>
+        <RowBetween>
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
@@ -190,20 +170,20 @@ export const PositionPreview = ({
               </TYPE.main>
             </AutoColumn>
           </LightCard>
+          <LightCard width="48%" padding="8px">
+            <AutoColumn gap="4px" justify="center">
+              <TYPE.main fontSize="12px">
+                <Trans>Current price</Trans>
+              </TYPE.main>
+              <TYPE.mediumHeader>{`${price.toSignificant(5)} `}</TYPE.mediumHeader>
+              <TYPE.main textAlign="center" fontSize="12px">
+                <Trans>
+                  {quoteCurrency.symbol} per {baseCurrency.symbol}
+                </Trans>
+              </TYPE.main>
+            </AutoColumn>
+          </LightCard>
         </RowBetween>
-        <LightCard padding="12px ">
-          <AutoColumn gap="4px" justify="center">
-            <TYPE.main fontSize="12px">
-              <Trans>Current price</Trans>
-            </TYPE.main>
-            <TYPE.mediumHeader>{`${price.toSignificant(5)} `}</TYPE.mediumHeader>
-            <TYPE.main textAlign="center" fontSize="12px">
-              <Trans>
-                {quoteCurrency.symbol} per {baseCurrency.symbol}
-              </Trans>
-            </TYPE.main>
-          </AutoColumn>
-        </LightCard>
       </AutoColumn>
     </AutoColumn>
   )
