@@ -177,43 +177,11 @@ export default function OptionsDetail({ onCurrencySelect, option, pair = null }:
   const [attempting, setAttempting] = useState(false)
   const [hash, setHash] = useState<string | undefined>()
 
-  /*
-  buyOption(
-      tokenId_: BigNumberish,
-      optionData_: {
-        pool: string;
-        optionType: BigNumberish;
-        strike: BigNumberish;
-        notional: BigNumberish;
-        maturity: BigNumberish;
-        maker: string;
-        resolver: string;
-        price: BigNumberish;
-      }
-  */
-
   const optionContract = useOptionContract(optionAddresses)
-
-  // const provider = new ethers.providers.Web3Provider(window.ethereum!)
-  // const signer = provider.getSigner()
-
-  // const toto = GetOptionContract(optionAddresses!, signer)
-  // toto.buyOption()
 
   async function onBuyOption() {
     if (optionContract) {
       setAttempting(true)
-
-      console.log('>>>>>>>>>option', {
-        pool: option?.pool,
-        optionType: option && option.optionType ? (option?.optionType?.toUpperCase() == 'CALL' ? 0 : 1) : 0,
-        strike: option && option.strike ? BigNumber.from(option?.strike) : undefined,
-        notional: option && option.notional ? BigNumber.from(option?.notional) : undefined,
-        maturity: option && option.maturity ? BigNumber.from(option?.maturity) : undefined,
-        maker: option?.maker,
-        resolver: option?.resolver,
-        price: option && option.price ? BigNumber.from(option?.price) : undefined,
-      })
 
       await optionContract
         .buyOption(

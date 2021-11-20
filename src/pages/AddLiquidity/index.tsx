@@ -596,11 +596,11 @@ export default function AddLiquidity({
         : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
           ? tickLower!
           : tickUpper!,
-          notional: ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals),
-          maturity: maturityTimestamp!.toString(),
-          maker: account!,
-          resolver: resolverAddresses!,
-          price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals), 
+        notional: ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals),
+        maturity: maturityTimestamp!.toString(),
+        maker: account!,
+        resolver: resolverAddresses!,
+        price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals), 
       },{gasLimit: 3500000, value:ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals)})
       .then((response: TransactionResponse) => {
           addTransaction(response, {

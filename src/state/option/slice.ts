@@ -52,12 +52,14 @@ export const api = createApi({
 })
 
 const query = gql`
-  query allOptionIntentions($optionType: OptionType!, $skip: Int!) {
+  query allQuickOptionIntentions($optionType: OptionType!, $skip: Int!) {
     options(first: 1000, skip: $skip, where: { optionType: $optionType }, orderBy: id) {
       id
       status
       buyer
       strike
+      maker
+      resolver
       optionType
       notional
       maturity
