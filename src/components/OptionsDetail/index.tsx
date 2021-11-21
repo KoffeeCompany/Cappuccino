@@ -267,26 +267,25 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
     }
   }
 
+  const [remainTimeStampState, setRemainTimeStampState] = useState<BigNumber>(ethers.constants.Zero)
   const timestamp = Date.now() / 1000
-  let remainingTime: Date | undefined = undefined
   const remainTimeStamp = useRef<BigNumber>(ethers.constants.Zero)
   useEffect(() => {
+    console.log('>>>>>>>useEffect called')
     if (option != undefined && option.maturity != undefined) {
       remainTimeStamp.current = option.maturity
         ? BigNumber.from(option?.maturity).sub(timestamp.toFixed())
         : ethers.constants.Zero
-      console.log('>>>>>>>remainTimeStamp', remainTimeStamp?.toString())
+      console.log('>>>>>>>remainTimeStamp', remainTimeStamp.current.toString())
       if (remainTimeStamp.current.lte(0)) {
         remainTimeStamp.current = ethers.constants.Zero
       }
-      remainingTime = remainTimeStamp
-        ? new Date(BigNumber.from(timestamp.toFixed()).add(remainTimeStamp.current).toNumber() * 1000)
-        : undefined
       console.log('>>>>>>>option', option)
       console.log('>>>>>>>remainTimeStamp', remainTimeStamp.current.toString())
     } else {
       remainTimeStamp.current = ethers.constants.Zero
     }
+    setRemainTimeStampState(remainTimeStamp.current)
   }, [option])
 
   const isExpired = remainTimeStamp.current.eq(0)
@@ -426,9 +425,9 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
               <StyledInput
                 className="rate-input-0"
                 value={
-                  remainTimeStamp.current.eq(0)
+                  remainTimeStampState.eq(0)
                     ? 'Expired'
-                    : `${(remainTimeStamp.current.toNumber() / (3600 * 24)).toFixed()} days`
+                    : `${(remainTimeStampState.toNumber() / (3600 * 24)).toFixed()} days`
                 }
                 fontSize="20px"
                 disabled={true}
