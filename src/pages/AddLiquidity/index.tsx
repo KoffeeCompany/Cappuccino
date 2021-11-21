@@ -199,8 +199,8 @@ export default function AddLiquidity({
   }  
   
   const formattedOptionAmounts = {
-    [independentField]: optionValue,
-    [dependentField]: parsedOptionAmounts[dependentField]?.toSignificant(6) ?? '',
+    [dependentField]: optionValue,
+    [independentField]: parsedOptionAmounts[dependentField]?.toSignificant(6) ?? '',
   }
 
   const optionValueNumber = ethers.utils.parseUnits(formattedOptionAmounts[Field.CURRENCY_A] != '' ? formattedOptionAmounts[Field.CURRENCY_A] : '0', currencies[Field.CURRENCY_A]?.decimals)
@@ -878,17 +878,17 @@ export default function AddLiquidity({
                 <DynamicSection style={{ marginTop: '10px'}} disabled={tickLower === undefined || tickUpper === undefined || invalidPool || invalidRange}>
                   <AutoColumn gap="md">
                     <TYPE.label>
-                      <Trans>Option value</Trans>
+                      <Trans>Premium</Trans>
                     </TYPE.label>
                     <CurrencyInputPanel
-                      value={formattedOptionAmounts[Field.CURRENCY_A]}
+                      value={formattedOptionAmounts[Field.CURRENCY_B]}
                       onUserInput={onOptionValueInput}
                       onMax={() => {
-                        onOptionValueInput(maxAmounts[Field.CURRENCY_A]?.toExact() ?? '')
+                        onOptionValueInput(maxAmounts[Field.CURRENCY_B]?.toExact() ?? '')
                       }}
                       showMaxButton={false}
-                      fiatValue={usdcOptionValues[Field.CURRENCY_A]}
-                      currency={currencies[Field.CURRENCY_A]}
+                      fiatValue={usdcOptionValues[Field.CURRENCY_B]}
+                      currency={currencies[Field.CURRENCY_B]}
                       id="add-liquidity-input-tokenb"
                       hideBalance={true}
                       showCommonBases

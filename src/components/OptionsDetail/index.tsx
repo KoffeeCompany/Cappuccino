@@ -9,10 +9,10 @@ import { TYPE } from 'theme'
 import DoubleCurrencyLogo from '../DoubleLogo'
 import CurrencyLogo from '../CurrencyLogo'
 import { Input as NumericalInput } from '../NumericalInput'
-import { Currency, Token } from '@uniswap/sdk-core'
+import { Currency, Token, CurrencyAmount } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'
 import { darken } from 'polished'
-import { ButtonGray, ButtonLight, ButtonPrimary } from '../Button'
+import { ButtonConfirmed, ButtonError, ButtonGray, ButtonLight, ButtonPrimary } from '../Button'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { useCurrency, useAllTokens } from '../../hooks/Tokens'
 import { filterTokens, useSortedTokensByQuery } from '../SearchModal/filtering'
@@ -28,6 +28,10 @@ import { BigNumber, ethers } from 'ethers'
 import GetOptionContract from 'abis'
 import { formatUnits } from 'ethers/lib/utils'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
+import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
+import ProgressCircles from 'components/ProgressSteps'
+import useTransactionDeadline from 'hooks/useTransactionDeadline'
+import { ExtendedEther, WETH9_EXTENDED } from 'constants/tokens'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -141,7 +145,6 @@ function formatNumber(value: any) {
 
 export default function OptionsDetail({ option }: OptionsDetailProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [modalOpen, setModalOpen] = useState(false)
   const { account, chainId, library } = useActiveWeb3React()
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
   const expertMode = useIsExpertMode()
@@ -183,64 +186,85 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
   const [attempting, setAttempting] = useState(false)
   const [hash, setHash] = useState<string | undefined>()
 
+  const findToken = (token: string) => {
+    const tokenKey = Object.keys(allTokens).find((key) => {
+      return key.toLowerCase() === token.toLowerCase()
+    })
+    return tokenKey ? allTokens[tokenKey] : undefined
+  }
+
+  const deadline = useTransactionDeadline()
+  const amountToApprove = option && option.price ? BigNumber.from(option?.price) : undefined
+  const tokenToApprove =
+    option && option.token1 && option.token0
+      ? findToken(option?.optionType?.toUpperCase() == 'CALL' ? option.token1 : option.token0)
+      : undefined
+  const currencyAmountToApprove =
+    amountToApprove && tokenToApprove
+      ? CurrencyAmount.fromRawAmount(tokenToApprove, amountToApprove.toString())
+      : undefined
   const optionContract = useOptionContract(optionAddresses)
+  const [approval, approveCallback] = useApproveCallback(currencyAmountToApprove, optionAddresses)
+
+  const isEthOrWETH = (currencyId: string | undefined): boolean => {
+    const isETH = currencyId?.toUpperCase() === 'ETH'
+    const weth = chainId ? WETH9_EXTENDED[chainId] : undefined
+    if (weth?.address?.toLowerCase() === currencyId?.toLowerCase()) return true
+    return isETH
+  }
+
+  async function onAttemptToApprove() {
+    await approveCallback().then(async () => {
+      console.log('>>>>>>START BUY')
+      await onBuyOption()
+    })
+  }
 
   async function onBuyOption() {
     if (optionContract) {
       setAttempting(true)
-
-      await optionContract
-        .buyOption(
-          option && option.id ? BigNumber.from(option?.id) : undefined,
-          {
-            pool: option?.pool,
-            optionType: option && option.optionType ? (option?.optionType?.toUpperCase() == 'CALL' ? 0 : 1) : 0,
-            strike: option && option.strike ? BigNumber.from(option?.strike) : undefined,
-            notional: option && option.notional ? BigNumber.from(option?.notional) : undefined,
-            maturity: option && option.maturity ? BigNumber.from(option?.maturity) : undefined,
-            maker: option?.maker,
-            resolver: option?.resolver,
-            price: option && option.price ? BigNumber.from(option?.price) : undefined,
-          },
-          {
-            gasLimit: 3500000,
-            value: option && option.price ? BigNumber.from(option?.price) : undefined,
-          }
-        )
-        .then((response: TransactionResponse) => {
-          addTransaction(response, {
-            summary: t`Buy option transaction`,
-          })
-          setHash(response.hash)
-          console.log(response.hash)
-        })
-        .catch((error: any) => {
+      if (optionContract && amountToApprove && deadline) {
+        if (approval === ApprovalState.APPROVED) {
+          await optionContract
+            .buyOption(
+              option && option.id ? BigNumber.from(option?.id) : undefined,
+              {
+                pool: option?.pool,
+                optionType: option && option.optionType ? (option?.optionType?.toUpperCase() == 'CALL' ? 0 : 1) : 0,
+                strike: option && option.strike ? BigNumber.from(option?.strike) : undefined,
+                notional: option && option.notional ? BigNumber.from(option?.notional) : undefined,
+                maturity: option && option.maturity ? BigNumber.from(option?.maturity) : undefined,
+                maker: option?.maker,
+                resolver: option?.resolver,
+                price: amountToApprove ? amountToApprove : undefined,
+              },
+              {
+                gasLimit: 3500000,
+                value:
+                  tokenToApprove && amountToApprove
+                    ? isEthOrWETH(tokenToApprove.symbol)
+                      ? amountToApprove
+                      : undefined
+                    : undefined,
+              }
+            )
+            .then((response: TransactionResponse) => {
+              addTransaction(response, {
+                summary: t`Buy option transaction`,
+              })
+              setHash(response.hash)
+              console.log(response.hash)
+            })
+            .catch((error: any) => {
+              setAttempting(false)
+              console.log(error)
+            })
+        } else {
           setAttempting(false)
-          console.log(error)
-        })
+          throw new Error('Attempting to buy option without approval. Please contact support.')
+        }
+      }
     }
-  }
-
-  const Buttons = () =>
-    !account ? (
-      <ButtonLight onClick={toggleWalletModal} $borderRadius="12px" padding={'12px'}>
-        <Trans>Connect to a wallet</Trans>
-      </ButtonLight>
-    ) : (
-      <ButtonPrimary
-        onClick={onBuyOption}
-        style={{ backgroundColor: '#1abb96', width: '100%', borderRadius: '8px' }}
-        padding="8px"
-        margin="20px"
-      >
-        <Trans>Buy</Trans>
-      </ButtonPrimary>
-    )
-
-  const options: Intl.DateTimeFormatOptions = {
-    dateStyle: 'medium',
-    hourCycle: 'h24',
-    timeStyle: 'long',
   }
 
   const timestamp = Date.now() / 1000
@@ -260,8 +284,33 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
         : undefined
       console.log('>>>>>>>option', option)
       console.log('>>>>>>>remainTimeStamp', remainTimeStamp.current.toString())
+    } else {
+      remainTimeStamp.current = ethers.constants.Zero
     }
   }, [option])
+
+  const isExpired = remainTimeStamp.current.eq(0)
+
+  const Buttons = () =>
+    !account ? (
+      <ButtonLight onClick={toggleWalletModal} $borderRadius="12px" padding={'12px'}>
+        <Trans>Connect to a wallet</Trans>
+      </ButtonLight>
+    ) : (
+      <>
+        <RowBetween>
+          <ButtonError onClick={onAttemptToApprove} disabled={isExpired} error={isExpired} padding="8px" margin="20px">
+            <Trans>Buy</Trans>
+          </ButtonError>
+        </RowBetween>
+      </>
+    )
+
+  const options: Intl.DateTimeFormatOptions = {
+    dateStyle: 'medium',
+    hourCycle: 'h24',
+    timeStyle: 'long',
+  }
 
   return (
     <>
@@ -358,7 +407,7 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
             </Container>
             <Container>
               <InputTitle fontSize={13} textAlign="left">
-                <Trans>Strike</Trans>
+                <Trans>Strike Tick</Trans>
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
@@ -413,7 +462,9 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
               </InputTitle>
               <StyledInput
                 className="rate-input-0"
-                value={option?.price ? formatUnits(option?.price) : '0'}
+                value={
+                  option?.price && tokenToApprove ? `${formatUnits(option?.price)} ${tokenToApprove?.symbol}` : '0'
+                }
                 fontSize="20px"
                 disabled={true}
                 onUserInput={() => {
@@ -421,11 +472,10 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
                 }}
               />
             </Container>
-            <Container>
-              <Buttons />
-            </Container>
+            <Container></Container>
           </ResponsiveThreeColumns>
         </RowBetween>
+        <Buttons />
 
         {/* <RowBetween>
           <ResponsiveThreeColumns wide={true} style={{ position: 'relative' }}>

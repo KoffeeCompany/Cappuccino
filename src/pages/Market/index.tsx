@@ -33,7 +33,6 @@ export default function Market() {
 
   const onCallSelect = (callRow: OptionUI) => {
     setTypedCallValue(callRow.originalItem)
-    console.log('>>>>>>>>>callRow.originalItem', callRow.originalItem)
   }
 
   const onPutSelect = (putRow: OptionUI) => {

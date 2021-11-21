@@ -105,7 +105,7 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
       { headerName: 'Notional', field: 'notional', flex: 1, valueFormatter: formUnits },
       { headerName: 'Maturity', field: 'maturity', flex: 1 },
       { headerName: 'Strike', field: 'strike', flex: 1, valueFormatter: formatNumber },
-      { headerName: 'Value', field: 'price', flex: 1, valueFormatter: formUnits },
+      { headerName: 'Premium', field: 'price', flex: 1, valueFormatter: formUnits },
       { headerName: 'Token 0', field: 'token0', flex: 1 },
       { headerName: 'Token 1', field: 'token1', flex: 1 },
       { headerName: 'Status', field: 'status', flex: 1 },

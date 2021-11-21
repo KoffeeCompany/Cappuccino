@@ -128,7 +128,7 @@ export const PositionPreview = ({
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
-                <Trans>Option value</Trans>
+                <Trans>Premium</Trans>
               </TYPE.main>
               <TYPE.mediumHeader textAlign="center">{`${optionValue?.toSignificant(4)}`}</TYPE.mediumHeader>
               <TYPE.main textAlign="center" fontSize="12px">
@@ -139,7 +139,7 @@ export const PositionPreview = ({
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
-                <Trans>Strike</Trans>
+                <Trans>Strike tick</Trans>
               </TYPE.main>
               <TYPE.mediumHeader>{`${strike}`}</TYPE.mediumHeader>
               <TYPE.main textAlign="center" fontSize="12px">
