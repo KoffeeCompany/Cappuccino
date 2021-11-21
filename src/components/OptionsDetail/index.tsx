@@ -32,6 +32,7 @@ import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import ProgressCircles from 'components/ProgressSteps'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { ExtendedEther, WETH9_EXTENDED } from 'constants/tokens'
+import { OptionStatus } from 'state/data/generated'
 
 export const CurrencyDropdown = styled(CurrencyInputPanel)`
   width: 48.5%;
@@ -288,7 +289,7 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
     setRemainTimeStampState(remainTimeStamp.current)
   }, [option])
 
-  const isExpired = remainTimeStamp.current.eq(0)
+  const isExpired = remainTimeStamp.current.eq(0) || option?.status == OptionStatus.Bought
 
   const Buttons = () =>
     !account ? (
