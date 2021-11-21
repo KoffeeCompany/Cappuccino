@@ -427,7 +427,9 @@ export default function OptionsDetail({ option }: OptionsDetailProps) {
                 value={
                   remainTimeStampState.eq(0)
                     ? 'Expired'
-                    : `${(remainTimeStampState.toNumber() / (3600 * 24)).toFixed()} days`
+                    : `${(remainTimeStampState.toNumber() / (3600 * 24)).toFixed()} ${
+                        (remainTimeStampState.toNumber() / (3600 * 24)).toFixed() == '1' ? 'day' : 'days'
+                      }`
                 }
                 fontSize="20px"
                 disabled={true}

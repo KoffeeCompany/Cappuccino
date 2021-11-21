@@ -53,7 +53,7 @@ export const api = createApi({
 
 const query = gql`
   query allQuickOptionIntentions($optionType: OptionType!, $skip: Int!) {
-    options(first: 1000, skip: $skip, where: { optionType: $optionType, status_not: bought }, orderBy: id) {
+    options(first: 1000, skip: $skip, where: { optionType: $optionType }, orderBy: id) {
       id
       status
       buyer

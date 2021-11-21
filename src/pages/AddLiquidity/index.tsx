@@ -579,13 +579,9 @@ export default function AddLiquidity({
   if (maturity == Maturity.ONE_MONTH) maturityTimestamp = blockTimestamp?.add(30 * 24 * 60 * 60)
   if (maturity == Maturity.THREE_MONTHS) maturityTimestamp = blockTimestamp?.add(90 * 24 * 60 * 60)  
 
-  const amountToSend = ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals)
-  const tokenToSend =
-  price == undefined || priceUpper == undefined 
-  ? pool?.token1
-  : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
-    ? pool?.token1
-    : pool?.token0
+  const amountToSend = ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals)
+
+  console.log('>>>>>>>>amountToSend', amountToSend.toString())
 
   const isEthOrWETH = (currencyId: string | undefined): boolean => {
     const isETH = currencyId?.toUpperCase() === 'ETH'
@@ -598,7 +594,8 @@ export default function AddLiquidity({
     if (optionContract) {
 
       setAttempting(true)
-      
+      console.log('>>>>>>>>>>>>>notionalValueCurrencyAmount', notionalValueCurrencyAmount?.toSignificant(5))
+      //console.log('>>>>>>>>>>>>>isEthOrWETH(tokenToSend?.symbol)? amountToSend : undefined', isEthOrWETH(tokenToSend?.symbol)? amountToSend : undefined)
       await optionContract.createOption({
         pool: Pool.getAddress(pool!.token0!, pool!.token1!, pool!.fee!),
         optionType: price == undefined || priceUpper == undefined 
@@ -611,12 +608,12 @@ export default function AddLiquidity({
         : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
           ? tickLower!
           : tickUpper!,
-        notional: ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals),
+        notional: amountToSend,
         maturity: maturityTimestamp!.toString(),
         maker: account!,
         resolver: resolverAddresses!,
-        price: amountToSend, 
-      },{gasLimit: 3500000, value: isEthOrWETH(tokenToSend?.symbol)? amountToSend : undefined})
+        price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals), 
+      },{gasLimit: 3500000, value: isEthOrWETH(notionalValueCurrencyAmount?.currency.symbol)? amountToSend : undefined})
       .then((response: TransactionResponse) => {
           addTransaction(response, {
             summary: t`Create option transaction`,

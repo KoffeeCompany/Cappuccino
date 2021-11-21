@@ -50,7 +50,11 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
     if (remainTimeStamp.lte(0)) {
       remainTimeStamp = ethers.constants.Zero
     }
-    return remainTimeStamp.eq(0) ? 'Expired' : `${(remainTimeStamp.toNumber() / (3600 * 24)).toFixed()} days`
+    return remainTimeStamp.eq(0)
+      ? 'Expired'
+      : `${(remainTimeStamp.toNumber() / (3600 * 24)).toFixed()} ${
+          (remainTimeStamp.toNumber() / (3600 * 24)).toFixed() == '1' ? 'day' : 'days'
+        }`
   }
 
   const toDataUI = (item: Option): OptionUI => {
