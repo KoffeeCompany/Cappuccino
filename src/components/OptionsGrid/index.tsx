@@ -53,10 +53,7 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
     return remainTimeStamp.eq(0)
       ? 'Expired'
       : `${(remainTimeStamp.toNumber() / (3600 * 24)).toFixed()} ${
-          (remainTimeStamp.toNumber() / (3600 * 24)).toFixed() == '1' ||
-          (remainTimeStamp.toNumber() / (3600 * 24)).toFixed() == '0'
-            ? 'day'
-            : 'days'
+          (remainTimeStamp.toNumber() / (3600 * 24)).toFixed() == '1' ? 'day' : 'days'
         }`
   }
 
@@ -108,6 +105,11 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
 
   const state = {
     columnDefs: [
+      {
+        headerName: 'Row',
+        valueGetter: 'node.rowIndex + 1',
+        flex: 1,
+      },
       { headerName: 'LP', field: 'lp', flex: 1 },
       { headerName: 'Notional', field: 'notional', flex: 1, valueFormatter: formUnits },
       { headerName: 'Maturity', field: 'maturity', flex: 1 },

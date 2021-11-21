@@ -90,7 +90,7 @@ export const OPTION_ADDRESSES: AddressMap = constructSameAddressMap('0xB69F3a95E
   SupportedChainId.LOCALHOST,
 ])
 
-export const RESOLVER_ADDRESSES: AddressMap = constructSameAddressMap('0x14f76cF52708E6BCE3B8CcaF0801975D535cBCeC', [
+export const RESOLVER_ADDRESSES: AddressMap = constructSameAddressMap('0xB389C3eB47A4dEB0aF4E7Eeb0Fbf28cfe638031f', [
   SupportedChainId.OPTIMISM,
   SupportedChainId.OPTIMISTIC_KOVAN,
   SupportedChainId.ARBITRUM_ONE,
