@@ -199,24 +199,13 @@ export default function AddLiquidity({
   }  
   
   const formattedOptionAmounts = {
+    [independentField]: optionValue,
     [dependentField]: optionValue,
-    [independentField]: parsedOptionAmounts[dependentField]?.toSignificant(6) ?? '',
-  }
-
-  const optionValueNumber = ethers.utils.parseUnits(formattedOptionAmounts[Field.CURRENCY_A] != '' ? formattedOptionAmounts[Field.CURRENCY_A] : '0', currencies[Field.CURRENCY_A]?.decimals)
-  const optionValueCurrencyAmount = 
-    Field.CURRENCY_A != undefined && currencies[Field.CURRENCY_A] != undefined 
-    ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_A!]!, optionValueNumber.toString()) 
-    : undefined  
+  }  
   
   const usdcValues = {
     [Field.CURRENCY_A]: useUSDCValue(parsedAmounts[Field.CURRENCY_A]),
     [Field.CURRENCY_B]: useUSDCValue(parsedAmounts[Field.CURRENCY_B]),
-  }
-  
-  const usdcOptionValues = {
-    [Field.CURRENCY_A]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_A]),
-    [Field.CURRENCY_B]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_B]),
   }
 
   // get the max amounts user can add
@@ -524,6 +513,17 @@ export default function AddLiquidity({
       ? CurrencyAmount.fromRawAmount(currencies[Field.CURRENCY_B!]!, currencyBNumber.toString()) 
       : undefined)
 
+  const optionValueNumber = ethers.utils.parseUnits(formattedOptionAmounts[isCall ? Field.CURRENCY_B : Field.CURRENCY_A] != '' ? formattedOptionAmounts[isCall ? Field.CURRENCY_B : Field.CURRENCY_A] : '0', currencies[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]?.decimals)
+  const optionValueCurrencyAmount = 
+    Field.CURRENCY_A != undefined && Field.CURRENCY_B != undefined && currencies[isCall ? Field.CURRENCY_B : Field.CURRENCY_A] != undefined 
+    ? CurrencyAmount.fromRawAmount(currencies[isCall ? Field.CURRENCY_B! : Field.CURRENCY_A!]!, optionValueNumber.toString()) 
+    : undefined   
+  
+  const usdcOptionValues = {
+    [Field.CURRENCY_A]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_A]),
+    [Field.CURRENCY_B]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_B]),
+  }
+
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice } =
     useRangeHopCallbacks(baseCurrency ?? undefined, quoteCurrency ?? undefined, feeAmount, tickLower, tickUpper, pool)
 
@@ -579,6 +579,21 @@ export default function AddLiquidity({
   if (maturity == Maturity.ONE_MONTH) maturityTimestamp = blockTimestamp?.add(30 * 24 * 60 * 60)
   if (maturity == Maturity.THREE_MONTHS) maturityTimestamp = blockTimestamp?.add(90 * 24 * 60 * 60)  
 
+  const amountToSend = ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals)
+  const tokenToSend =
+  price == undefined || priceUpper == undefined 
+  ? pool?.token1
+  : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
+    ? pool?.token1
+    : pool?.token0
+
+  const isEthOrWETH = (currencyId: string | undefined): boolean => {
+    const isETH = currencyId?.toUpperCase() === 'ETH'
+    const weth = chainId ? WETH9_EXTENDED[chainId] : undefined
+    if (weth?.address?.toLowerCase() === currencyId?.toLowerCase()) return true
+    return isETH
+  }
+
   async function onCreateOption() {
     if (optionContract) {
 
@@ -600,8 +615,8 @@ export default function AddLiquidity({
         maturity: maturityTimestamp!.toString(),
         maker: account!,
         resolver: resolverAddresses!,
-        price: ethers.utils.parseUnits(optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0', optionValueCurrencyAmount?.currency.decimals), 
-      },{gasLimit: 3500000, value:ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals)})
+        price: amountToSend, 
+      },{gasLimit: 3500000, value: isEthOrWETH(tokenToSend?.symbol)? amountToSend : undefined})
       .then((response: TransactionResponse) => {
           addTransaction(response, {
             summary: t`Create option transaction`,
@@ -881,14 +896,14 @@ export default function AddLiquidity({
                       <Trans>Premium</Trans>
                     </TYPE.label>
                     <CurrencyInputPanel
-                      value={formattedOptionAmounts[Field.CURRENCY_B]}
+                      value={formattedOptionAmounts[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]}
                       onUserInput={onOptionValueInput}
                       onMax={() => {
-                        onOptionValueInput(maxAmounts[Field.CURRENCY_B]?.toExact() ?? '')
+                        onOptionValueInput(maxAmounts[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]?.toExact() ?? '')
                       }}
                       showMaxButton={false}
-                      fiatValue={usdcOptionValues[Field.CURRENCY_B]}
-                      currency={currencies[Field.CURRENCY_B]}
+                      fiatValue={usdcOptionValues[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]}
+                      currency={currencies[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]}
                       id="add-liquidity-input-tokenb"
                       hideBalance={true}
                       showCommonBases

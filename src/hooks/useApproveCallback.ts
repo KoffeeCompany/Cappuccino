@@ -47,10 +47,10 @@ export function useApproveCallback(
   const addTransaction = useTransactionAdder()
 
   const approve = useCallback(async (): Promise<void> => {
-    if (approvalState !== ApprovalState.NOT_APPROVED) {
-      console.error('approve was called unnecessarily')
-      return
-    }
+    // if (approvalState !== ApprovalState.NOT_APPROVED) {
+    //   console.error('approve was called unnecessarily')
+    //   return
+    // }
     if (!chainId) {
       console.error('no chainId')
       return
