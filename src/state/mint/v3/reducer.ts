@@ -7,7 +7,7 @@ import {
   typeStartPriceInput,
   typeLeftRangeInput,
   typeRightRangeInput,
-  optionValueInput,
+  premiumValueInput,
 } from './actions'
 
 export type FullRange = true
@@ -18,7 +18,7 @@ interface MintState {
   readonly startPriceTypedValue: string // for the case when there's no liquidity
   readonly leftRangeTypedValue: string | FullRange
   readonly rightRangeTypedValue: string | FullRange
-  readonly optionValue: string
+  readonly premiumValue: string
 }
 
 const initialState: MintState = {
@@ -27,7 +27,7 @@ const initialState: MintState = {
   startPriceTypedValue: '',
   leftRangeTypedValue: '',
   rightRangeTypedValue: '',
-  optionValue: '',
+  premiumValue: '',
 }
 
 export default createReducer<MintState>(initialState, (builder) =>
@@ -58,10 +58,10 @@ export default createReducer<MintState>(initialState, (builder) =>
         rightRangeTypedValue: typedValue,
       }
     })
-    .addCase(optionValueInput, (state, { payload: { typedValue } }) => {
+    .addCase(premiumValueInput, (state, { payload: { typedValue } }) => {
       return {
         ...state,
-        optionValue: typedValue,
+        premiumValueInput: typedValue,
       }
     })
     .addCase(typeInput, (state, { payload: { field, typedValue, noLiquidity } }) => {

@@ -13,6 +13,7 @@ import { useModalOpen, useToggleModal } from '../state/application/hooks'
 import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
 import { RedirectDuplicateTokenIds } from './AddLiquidity/redirects'
 import Market from './Market'
+import Strategies from './Strategies'
 
 // Redirects to pool (market) but only replace the pathname
 function RedirectPathToMarket({ location }: RouteComponentProps) {
@@ -75,10 +76,17 @@ export default function App() {
             <TopLevelModals />
             <Switch>
               <Route exact strict path="/market" component={Market} />
+              <Route exact strict path="/strategies" component={Strategies} />
               <Route
                 exact
                 strict
                 path="/add/:currencyIdA?/:currencyIdB?/:feeAmount?/:maturity?"
+                component={RedirectDuplicateTokenIds}
+              />
+              <Route
+                exact
+                strict
+                path="/create/:currencySymbolA?/:currencySymbolB?/:feeAmount?/:maturity?"
                 component={RedirectDuplicateTokenIds}
               />
               <Route component={RedirectPathToMarket} />

@@ -3,8 +3,9 @@ import { Redirect, RouteComponentProps } from 'react-router-dom'
 import { WETH9_EXTENDED } from '../../constants/tokens'
 import AddLiquidity from './index'
 
+// currencyId could be a currency symbol or currency address
 export function RedirectDuplicateTokenIds(
-  props: RouteComponentProps<{ currencyIdA: string; currencyIdB: string; feeAmount?: string }>
+  props: RouteComponentProps<{ currencyIdA: string; currencyIdB: string; feeAmount?: string; maturity?: string }>
 ) {
   const {
     match: {
@@ -25,7 +26,7 @@ export function RedirectDuplicateTokenIds(
     currencyIdB &&
     (currencyIdA.toLowerCase() === currencyIdB.toLowerCase() || (isETHOrWETHA && isETHOrWETHB))
   ) {
-    return <Redirect to={`/add/${currencyIdA}`} />
+    return <Redirect to={`/create/${currencyIdA}`} />
   }
   return <AddLiquidity {...props} />
 }

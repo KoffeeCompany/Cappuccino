@@ -82,6 +82,7 @@ import { OptionType } from 'state/data/generated'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { abi as OPTION_ABI } from 'abis/option.json'
 import GetOptionContract from 'abis'
+import { useSetMaturityTimestamp } from 'pages/CreateOption/functions'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -143,7 +144,7 @@ export default function AddLiquidity({
     : undefined
 
   // mint state
-  const { independentField, typedValue, startPriceTypedValue, optionValue } = useV3MintState()
+  const { independentField, typedValue, startPriceTypedValue, premiumValue } = useV3MintState()
 
   const {
     pool,
@@ -152,7 +153,7 @@ export default function AddLiquidity({
     price,
     pricesAtTicks,
     parsedAmounts,
-    parsedOptionAmounts,
+    premiumAmounts,
     currencyBalances,
     position,
     noLiquidity,
@@ -173,7 +174,7 @@ export default function AddLiquidity({
     existingPosition
   )
 
-  const { onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onStartPriceInput, onOptionValueInput } =
+  const { onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onStartPriceInput, onPremiumInput } =
     useV3MintActionHandlers(noLiquidity)
 
   const isValid = !errorMessage && !invalidRange && maturity != undefined
@@ -199,8 +200,8 @@ export default function AddLiquidity({
   }  
   
   const formattedOptionAmounts = {
-    [independentField]: optionValue,
-    [dependentField]: optionValue,
+    [independentField]: premiumValue,
+    [dependentField]: premiumValue,
   }  
   
   const usdcValues = {
@@ -493,9 +494,9 @@ export default function AddLiquidity({
     onFieldBInput('')
     onLeftRangeInput('')
     onRightRangeInput('')
-    onOptionValueInput('')
+    onPremiumInput('')
     history.push(`/add`)
-  }, [history, onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onOptionValueInput])
+  }, [history, onFieldAInput, onFieldBInput, onLeftRangeInput, onRightRangeInput, onPremiumInput])
 
   // get value and prices at ticks
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
@@ -520,8 +521,8 @@ export default function AddLiquidity({
     : undefined   
   
   const usdcOptionValues = {
-    [Field.CURRENCY_A]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_A]),
-    [Field.CURRENCY_B]: useUSDCValue(parsedOptionAmounts[Field.CURRENCY_B]),
+    [Field.CURRENCY_A]: useUSDCValue(premiumAmounts[Field.CURRENCY_A]),
+    [Field.CURRENCY_B]: useUSDCValue(premiumAmounts[Field.CURRENCY_B]),
   }
 
   const { getDecrementLower, getIncrementLower, getDecrementUpper, getIncrementUpper, getSetFullRange, setToPrice } =
@@ -572,12 +573,7 @@ export default function AddLiquidity({
   const [hash, setHash] = useState<string | undefined>()
 
   // const maturity = (await currentBlock).timestamp + 10; // 10 seconds
-  const blockTimestamp = useCurrentBlockTimestamp()
-  let maturityTimestamp: BigNumber | undefined
-  if (maturity == Maturity.ONE_DAY) maturityTimestamp = blockTimestamp?.add(24 * 60 * 60)
-  if (maturity == Maturity.SEVEN_DAYS) maturityTimestamp = blockTimestamp?.add(7 * 24 * 60 * 60)
-  if (maturity == Maturity.ONE_MONTH) maturityTimestamp = blockTimestamp?.add(30 * 24 * 60 * 60)
-  if (maturity == Maturity.THREE_MONTHS) maturityTimestamp = blockTimestamp?.add(90 * 24 * 60 * 60)  
+  const maturityTimestamp: BigNumber | undefined = useSetMaturityTimestamp(maturity?? 0)  
 
   const amountToSend = ethers.utils.parseUnits(notionalValueCurrencyAmount ? notionalValueCurrencyAmount.toSignificant(5) : '0', notionalValueCurrencyAmount?.currency.decimals)
 
@@ -894,9 +890,9 @@ export default function AddLiquidity({
                     </TYPE.label>
                     <CurrencyInputPanel
                       value={formattedOptionAmounts[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]}
-                      onUserInput={onOptionValueInput}
+                      onUserInput={onPremiumInput}
                       onMax={() => {
-                        onOptionValueInput(maxAmounts[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]?.toExact() ?? '')
+                        onPremiumInput(maxAmounts[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]?.toExact() ?? '')
                       }}
                       showMaxButton={false}
                       fiatValue={usdcOptionValues[isCall ? Field.CURRENCY_B : Field.CURRENCY_A]}
