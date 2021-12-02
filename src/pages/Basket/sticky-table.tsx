@@ -67,13 +67,13 @@ export default function StickyHeadTable() {
   const buyBtn = (
     <Button
       variant="outlined"
-      color="error"
+      color="success"
       size="small"
       style={{
         fontFamily: "'Inter var', sans-serif",
       }}
     >
-      Buy
+      Exercise
     </Button>
   )
   return (
