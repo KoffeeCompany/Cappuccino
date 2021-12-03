@@ -80,7 +80,7 @@ export default function CreateOption({
       : tmpQuoteCurrency
 
   // mint state
-  const { independentField, bcvValue, strikeValue } = useOlympusMintState()
+  const { independentField, bcvValue, strikeValue, liquidityValue } = useOlympusMintState()
 
   const {
     dependentField,
@@ -88,13 +88,14 @@ export default function CreateOption({
     currencyBalances,
     parsedAmounts,
     strikeAmounts,
+    liquidityAmounts,
     bondPrice,
     marketPrice,
     errorMessage,
     invertPrice,
   } = useOlympusDerivedMintInfo(baseCurrency ?? undefined, quoteCurrency ?? undefined, baseCurrency ?? undefined)
 
-  const { onBcvInput, onStrikeInput } = useOlympusMintActionHandlers()
+  const { onBcvInput, onStrikeInput, onLiquidityInput } = useOlympusMintActionHandlers()
 
   const isValid = !errorMessage && maturity != undefined && bcvValue != '' && strikeValue != ''
 
@@ -117,9 +118,19 @@ export default function CreateOption({
     [dependentField]: strikeValue,
   }
 
+  const formattedLiquidityAmounts = {
+    [independentField]: liquidityValue,
+    [dependentField]: liquidityValue,
+  }
+
   const usdcStrikeValues = {
     [Field.CURRENCY_A]: useUSDCValue(strikeAmounts[Field.CURRENCY_A]),
     [Field.CURRENCY_B]: useUSDCValue(strikeAmounts[Field.CURRENCY_B]),
+  }
+
+  const usdcLiquidityValues = {
+    [Field.CURRENCY_A]: useUSDCValue(liquidityAmounts[Field.CURRENCY_A]),
+    [Field.CURRENCY_B]: useUSDCValue(liquidityAmounts[Field.CURRENCY_B]),
   }
 
   const argentWalletContract = useArgentWalletContract()
@@ -150,8 +161,9 @@ export default function CreateOption({
   const clearAll = useCallback(() => {
     onBcvInput('')
     onStrikeInput('')
+    onLiquidityInput('')
     history.push(`/create/0x383518188C0C6d7730D91b2c03a03C837814a899/0x6B175474E89094C44Da98b954EedeAC495271d0F`)
-  }, [history, onBcvInput, onStrikeInput])
+  }, [history, onBcvInput, onStrikeInput, onLiquidityInput])
 
   const optionAddresses: string | undefined = useMemo(() => {
     if (chainId) {
@@ -349,6 +361,25 @@ export default function CreateOption({
             </AutoColumn>
             <DynamicSection disabled={bondPrice === undefined || marketPrice === undefined}>
               <AutoColumn gap="md">
+                <TYPE.label>
+                  <Trans>Liquidity</Trans>
+                </TYPE.label>
+
+                <CurrencyInputPanel
+                  value={formattedLiquidityAmounts[Field.CURRENCY_A]}
+                  onUserInput={onLiquidityInput}
+                  onMax={() => {
+                    //
+                  }}
+                  showMaxButton={false}
+                  currency={currencies[Field.CURRENCY_A]}
+                  id="liquidity-input-tokena"
+                  fiatValue={usdcLiquidityValues[Field.CURRENCY_A]}
+                  hideBalance={true}
+                  locked={false}
+                />
+              </AutoColumn>
+              <AutoColumn gap="md" style={{ marginTop: '15px' }}>
                 <TYPE.label>
                   <Trans>BCV value</Trans>
                 </TYPE.label>

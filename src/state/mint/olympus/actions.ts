@@ -11,4 +11,5 @@ export enum Bound {
 }
 
 export const strikeValueInput = createAction<{ field: Field; typedValue: string }>('olympus/strikeValueInput')
+export const liquidityValueInput = createAction<{ field: Field; typedValue: string }>('olympus/liquidityValueInput')
 export const bcvValueInput = createAction<{ typedValue: string }>('olympus/bcvValueInput')
