@@ -101,7 +101,7 @@ export default function CreateOption({
 
   const { onBcvInput, onStrikeInput, onLiquidityInput } = useOlympusMintActionHandlers()
 
-  const isValid = !errorMessage && bcvValue != '' && strikeValue != ''
+  const isValid = !errorMessage && bcvValue != '' && strikeValue != '' && liquidityValue != ''
 
   // modal and loading
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
