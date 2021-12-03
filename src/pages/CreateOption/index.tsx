@@ -47,6 +47,7 @@ import { useIsSwapUnsupported } from 'hooks/useIsSwapUnsupported'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
 import { OptionType } from 'state/data/generated'
+import { DAI, OHM } from 'constants/tokens'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -177,7 +178,7 @@ export default function CreateOption({
     onBcvInput('')
     onStrikeInput('')
     onLiquidityInput('')
-    history.push(`/create/0x383518188C0C6d7730D91b2c03a03C837814a899/0x6B175474E89094C44Da98b954EedeAC495271d0F`)
+    history.push(`/create/${OHM.address}/${DAI.address}`)
   }, [history, onBcvInput, onStrikeInput, onLiquidityInput])
 
   const optionAddresses: string | undefined = useMemo(() => {
@@ -244,13 +245,13 @@ export default function CreateOption({
 
   const Buttons = () =>
     addIsUnsupported ? (
-      <ButtonPrimary disabled={true} $borderRadius="12px" padding={'12px'}>
+      <ButtonPrimary disabled={true} $borderRadius="4px" padding={'12px'}>
         <TYPE.main mb="4px">
           <Trans>Unsupported Asset</Trans>
         </TYPE.main>
       </ButtonPrimary>
     ) : !account ? (
-      <ButtonLight onClick={toggleWalletModal} $borderRadius="12px" padding={'12px'}>
+      <ButtonLight onClick={toggleWalletModal} $borderRadius="4px" padding={'12px'}>
         <Trans>Connect to a wallet</Trans>
       </ButtonLight>
     ) : (
@@ -294,6 +295,7 @@ export default function CreateOption({
             </RowBetween>
           )}
         <ButtonError
+          style={{ borderRadius: '4px' }}
           onClick={() => {
             expertMode ? onCreateOption() : setShowConfirm(true)
           }}

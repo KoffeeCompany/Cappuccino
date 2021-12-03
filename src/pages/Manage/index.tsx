@@ -5,18 +5,79 @@ import StickyHeadTable from './sticky-table'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import { useContext } from 'react'
+import { useCallback, useContext, useState } from 'react'
 import Paper from '@mui/material/Paper'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import { Text } from 'rebass'
+import { Trans, t } from '@lingui/macro'
 import { ButtonPrimary } from 'components/Button'
-import { Trans } from '@lingui/macro'
 import { Link } from 'react-router-dom'
+import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
+import { Review } from './Review'
+import { DAI, OHM } from 'constants/tokens'
 
-export default function Manage() {
+export default function Manage(history: any) {
   const theme = useContext(ThemeContext)
+  const [showAddLiquidity, setShowAddLiquidity] = useState<boolean>(false)
+  const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
+  const [txHash, setTxHash] = useState<string>('')
+  const handleDismissConfirmation = useCallback(() => {
+    setShowAddLiquidity(false)
+    // if there was a tx hash, we want to clear the input
+    if (txHash) {
+      history.push('/manage')
+    }
+    setTxHash('')
+  }, [history, txHash])
+
+  async function onUpdateLiquidityOption() {
+    //
+  }
+
   return (
     <>
+      <TransactionConfirmationModal
+        isOpen={showAddLiquidity}
+        onDismiss={handleDismissConfirmation}
+        attemptingTxn={attemptingTxn}
+        hash={txHash}
+        content={() => (
+          <ConfirmationModalContent
+            title={t`Add liquidity`}
+            onDismiss={handleDismissConfirmation}
+            topContent={() => (
+              // <Review
+              //   parsedAmounts={parsedAmounts}
+              //   position={position}
+              //   existingPosition={existingPosition}
+              //   priceLower={priceLower}
+              //   priceUpper={priceUpper}
+              //   outOfRange={outOfRange}
+              //   ticksAtLimit={ticksAtLimit}
+              //   strike={
+              //     price == undefined || priceUpper == undefined
+              //       ? tickLower!
+              //       : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
+              //       ? tickLower!
+              //       : tickUpper!
+              //   }
+              //   optionValue={optionValueCurrencyAmount}
+              //   maturity={maturity}
+              // />
+              <div></div>
+            )}
+            bottomContent={() => (
+              <ButtonPrimary style={{ marginTop: '1rem', borderRadius: '4px' }} onClick={onUpdateLiquidityOption}>
+                <Text fontWeight={500} fontSize={20}>
+                  <Trans>Add liquidity</Trans>
+                </Text>
+              </ButtonPrimary>
+            )}
+          />
+        )}
+        pendingText={undefined}
+      />
       <Container maxWidth="lg">
         <MuiBox className="strategies-title">
           <Grid className="grid-side">
@@ -45,7 +106,7 @@ export default function Manage() {
             <Grid>
               <ButtonPrimary
                 as={Link}
-                to="/create/0x383518188C0C6d7730D91b2c03a03C837814a899/0x6B175474E89094C44Da98b954EedeAC495271d0F"
+                to={`/create/${OHM.address}/${DAI.address}`}
                 style={{
                   width: 'fit-content',
                   borderRadius: '4px',
@@ -73,7 +134,7 @@ export default function Manage() {
           </Box>
           <Grid className="grid-container bond-grid">
             <Grid className="grid-container grid-row">
-              <StickyHeadTable></StickyHeadTable>
+              <StickyHeadTable onUserClick={() => setShowAddLiquidity(true)}></StickyHeadTable>
             </Grid>
           </Grid>
         </Paper>
