@@ -25,7 +25,6 @@ import {
   Wrapper,
 } from './styled'
 import ReactGA from 'react-ga'
-import { useHandleCurrencySelect } from './functions'
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, OPTION_ADDRESSES, RESOLVER_ADDRESSES } from 'constants/addresses'
 import { useOptionContract } from 'hooks/useContract'
 import Row, { RowBetween, RowFixed, AutoRow } from '../../components/Row'
@@ -47,18 +46,20 @@ import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter
 import { useIsSwapUnsupported } from 'hooks/useIsSwapUnsupported'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
+import { OptionType } from 'state/data/generated'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
 export default function CreateOption({
   match: {
-    params: { currencyIdA, currencyIdB, maturity: maturityFromUrl },
+    params: { currencyIdA, currencyIdB, maturity: maturityFromUrl, optionType: optionTypeFromUrl },
   },
   history,
 }: RouteComponentProps<{
   currencyIdA?: string
   currencyIdB?: string
   maturity?: string
+  optionType?: string
   tokenId?: string
 }>) {
   const { account, chainId, library } = useActiveWeb3React()
@@ -66,10 +67,13 @@ export default function CreateOption({
   const expertMode = useIsExpertMode()
 
   // maturity from url
-  const maturity: Maturity | undefined =
+  const maturity: Maturity =
     maturityFromUrl && Object.values(Maturity).includes(parseFloat(maturityFromUrl))
       ? parseFloat(maturityFromUrl)
-      : undefined
+      : Maturity.FIVE_DAYS
+
+  const optionType: OptionType =
+    optionTypeFromUrl && optionTypeFromUrl.toUpperCase() == 'PUT' ? OptionType.Put : OptionType.Call
 
   const baseCurrency = useCurrency(currencyIdA)
   const tmpQuoteCurrency = useCurrency(currencyIdB)
@@ -97,7 +101,7 @@ export default function CreateOption({
 
   const { onBcvInput, onStrikeInput, onLiquidityInput } = useOlympusMintActionHandlers()
 
-  const isValid = !errorMessage && maturity != undefined && bcvValue != '' && strikeValue != ''
+  const isValid = !errorMessage && bcvValue != '' && strikeValue != ''
 
   // modal and loading
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
@@ -156,6 +160,17 @@ export default function CreateOption({
       history.push(`/create/${currencyIdA}/${currencyIdB}/${maturity_}`)
     },
     [currencyIdA, currencyIdB, history]
+  )
+
+  const handleOptionTypeSelectWithEvent = useCallback(
+    (optionType_: OptionType) => {
+      ReactGA.event({
+        category: 'OptionTypeSelect',
+        action: 'Manual',
+      })
+      history.push(`/create/${currencyIdA}/${currencyIdB}/${maturity}/${optionType_}`)
+    },
+    [currencyIdA, currencyIdB, maturity, history]
   )
 
   const clearAll = useCallback(() => {
@@ -289,9 +304,7 @@ export default function CreateOption({
           }
           error={!isValid && !!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]}
         >
-          <Text fontWeight={500}>
-            <Trans>Preview</Trans>
-          </Text>
+          <Text fontWeight={500}>{errorMessage ? errorMessage : <Trans>Preview</Trans>}</Text>
         </ButtonError>
       </AutoColumn>
     )
@@ -359,6 +372,47 @@ export default function CreateOption({
                 />
               </RowBetween>
             </AutoColumn>
+            <DynamicSection
+              style={{ marginBottom: '10px' }}
+              disabled={bondPrice === undefined || marketPrice === undefined}
+            >
+              <AutoColumn gap="md" style={{ marginBottom: '10px' }}>
+                <TYPE.label>
+                  <Trans>Option Type</Trans>
+                </TYPE.label>
+              </AutoColumn>
+              <AutoColumn>
+                <RowBetween style={{ justifyContent: 'left' }}>
+                  <ButtonRadioChecked
+                    width="24%"
+                    active={optionType === OptionType.Call}
+                    onClick={() => handleOptionTypeSelectWithEvent(OptionType.Call)}
+                  >
+                    <AutoColumn gap="sm" justify="flex-start">
+                      <AutoColumn justify="flex-start" gap="6px">
+                        <ResponsiveText>
+                          <Trans>CALL</Trans>
+                        </ResponsiveText>
+                      </AutoColumn>
+                    </AutoColumn>
+                  </ButtonRadioChecked>
+                  <ButtonRadioChecked
+                    style={{ marginLeft: '15px' }}
+                    width="24%"
+                    active={optionType === OptionType.Put}
+                    onClick={() => handleOptionTypeSelectWithEvent(OptionType.Put)}
+                  >
+                    <AutoColumn gap="sm" justify="flex-start">
+                      <AutoColumn justify="flex-start" gap="4px">
+                        <ResponsiveText>
+                          <Trans>PUT</Trans>
+                        </ResponsiveText>
+                      </AutoColumn>
+                    </AutoColumn>
+                  </ButtonRadioChecked>
+                </RowBetween>
+              </AutoColumn>
+            </DynamicSection>
             <DynamicSection disabled={bondPrice === undefined || marketPrice === undefined}>
               <AutoColumn gap="md">
                 <TYPE.label>
