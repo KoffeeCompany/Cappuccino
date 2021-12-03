@@ -15,7 +15,7 @@ import {
   nearestUsableTick,
 } from '@uniswap/v3-sdk/dist/'
 import { Currency, Token, CurrencyAmount, Price, Rounding } from '@uniswap/sdk-core'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useActiveWeb3React } from '../../../hooks/web3'
 import { AppState } from '../../index'
 import { tryParseAmount } from '../../swap/hooks'
@@ -33,10 +33,21 @@ import {
 import { tryParseTick } from './utils'
 import { usePool } from 'hooks/usePools'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
+import { abi as BondDaiContract } from '../../../abis/olympus/bonds/DaiContract.json';
+import { abi as ReserveOhmDaiContract } from '../../../abis/olympus/reserves/OhmDai.json';
+import { OLYMPUS_OHMDAI_BOND_ADDRESSES, OLYMPUS_OHMDAI_RESERVE_ADDRESSES } from 'constants/addresses'
+import { useContract } from 'hooks/useContract'
+import { bcvValueInput, strikeValueInput } from '../olympus/actions'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 export function useV3MintState(): AppState['mintV3'] {
   return useAppSelector((state) => state.mintV3)
 }
+
+export function useOlympusMintState(): AppState['mintOlympus'] {
+  return useAppSelector((state) => state.mintOlympus)
+}
+
 
 export function useV3MintActionHandlers(noLiquidity: boolean | undefined): {
   onFieldAInput: (typedValue: string) => void
@@ -98,6 +109,147 @@ export function useV3MintActionHandlers(noLiquidity: boolean | undefined): {
     onRightRangeInput,
     onStartPriceInput,
     onPremiumInput
+  }
+}
+
+export function useOlympusMintActionHandlers(): {
+  onBcvInput: (typedValue: string) => void
+  onStrikeInput: (typedValue: string) => void
+} {
+  const dispatch = useAppDispatch()
+
+  const onStrikeInput = useCallback(
+    (typedValue: string) => {
+      dispatch(strikeValueInput({ field: Field.CURRENCY_A, typedValue }))
+      dispatch(strikeValueInput({ field: Field.CURRENCY_B, typedValue }))
+    },
+    [dispatch]
+  )
+
+  const onBcvInput = useCallback(
+    (typedValue: string) => {
+      dispatch(bcvValueInput({ typedValue }))
+    },
+    [dispatch]
+  )
+
+  return {
+    onBcvInput,
+    onStrikeInput
+  }
+}
+
+export function useOlympusDerivedMintInfo(
+  currencyA?: Currency,
+  currencyB?: Currency,
+  baseCurrency?: Currency
+): {
+    bondPrice?: Price<Currency, Currency>
+    marketPrice?: Price<Currency, Currency>
+    currencies: { [field in Field]?: Currency }
+    currencyBalances: { [field in Field]?: CurrencyAmount<Currency> }
+    dependentField: Field
+    parsedAmounts: { [field in Field]?: CurrencyAmount<Currency> }
+    strikeAmounts: { [field in Field]?: CurrencyAmount<Currency> }
+    errorMessage?: string
+    invertPrice: boolean
+} {
+  const { account } = useActiveWeb3React()
+
+  const { independentField, bcvValue, strikeValue } = useOlympusMintState()
+  
+  const dependentField = independentField === Field.CURRENCY_A ? Field.CURRENCY_B : Field.CURRENCY_A
+
+  // currencies
+  const currencies: { [field in Field]?: Currency } = useMemo(
+    () => ({
+      [Field.CURRENCY_A]: currencyA,
+      [Field.CURRENCY_B]: currencyB,
+    }),
+    [currencyA, currencyB]
+  )
+
+  // formatted with tokens
+  const [tokenA, tokenB, baseToken] = useMemo(
+    () => [currencyA?.wrapped, currencyB?.wrapped, baseCurrency?.wrapped],
+    [currencyA, currencyB, baseCurrency]
+  )
+
+  const [token0, token1] = useMemo(
+    () =>
+      tokenA && tokenB ? (tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]) : [undefined, undefined],
+    [tokenA, tokenB]
+  )
+
+  // balances
+  const balances = useCurrencyBalances(account ?? undefined, [
+    currencies[Field.CURRENCY_A],
+    currencies[Field.CURRENCY_B],
+  ])
+  const currencyBalances: { [field in Field]?: CurrencyAmount<Currency> } = {
+    [Field.CURRENCY_A]: balances[0],
+    [Field.CURRENCY_B]: balances[1],
+  }
+
+  // note to parse inputs in reverse
+  const invertPrice = Boolean(baseToken && token0 && !baseToken.equals(token0))
+
+  // always returns the price with 0 as base token
+  const {bondPrice, marketPrice} = useGetOhmDaiPrice(currencyA, currencyB)
+  
+  // amounts
+  const independentAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
+    '1',
+    currencies[independentField]
+  )
+
+  const dependentAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
+    bondPrice?.toSignificant(5),
+    currencies[dependentField]
+  )
+
+  const independentStrikeAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
+    strikeValue,
+    currencies[independentField]
+  )
+
+  const dependentStrikeAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
+    strikeValue,
+    currencies[dependentField]
+  )
+
+  const parsedAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined } = useMemo(() => {
+    return {
+      [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentAmount : dependentAmount,
+      [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentAmount : independentAmount,
+    }
+  }, [dependentAmount, independentAmount, independentField])
+
+  const strikeAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined } = useMemo(() => {
+    return {
+      [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentStrikeAmount : dependentStrikeAmount,
+      [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentStrikeAmount : independentStrikeAmount,
+    }
+  }, [independentStrikeAmount, dependentStrikeAmount, independentField])   
+
+  const errorMessage: string | undefined = handleOlympusErrorMessage(
+    account, 
+    bcvValue, 
+    parsedAmounts, 
+    strikeAmounts, 
+    currencyBalances, 
+    currencies)
+
+  return {
+    dependentField,
+    currencies,
+    currencyBalances,
+    parsedAmounts,
+    strikeAmounts,
+    bondPrice,
+    marketPrice, 
+    errorMessage,
+    invertPrice,
   }
 }
 
@@ -266,7 +418,7 @@ export function useV3DerivedMintInfo(
   )
 
   const dependentPremiumAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
-    typedValue,
+    premiumValue,
     currencies[dependentField]
   )
 
@@ -354,6 +506,44 @@ export function useV3DerivedMintInfo(
     invertPrice,
     ticksAtLimit,
   }
+}
+
+function handleOlympusErrorMessage(
+  account: string | null | undefined, 
+  bcvValue: string | null | undefined,
+  parsedAmounts: { CURRENCY_A: CurrencyAmount<Currency> | undefined; CURRENCY_B: CurrencyAmount<Currency> | undefined }, 
+  strikeAmounts: { CURRENCY_A: CurrencyAmount<Currency> | undefined; CURRENCY_B: CurrencyAmount<Currency> | undefined }, 
+  currencyBalances: { CURRENCY_A?: CurrencyAmount<Currency> | undefined; CURRENCY_B?: CurrencyAmount<Currency> | undefined }, 
+  currencies: { CURRENCY_A?: Currency | undefined; CURRENCY_B?: Currency | undefined }
+): string | undefined {
+  let errorMessage
+  if (!account) {
+    errorMessage = t`Connect Wallet`
+  }
+
+  if (!bcvValue) {
+    errorMessage = t`Enter BCV constant`
+  }
+
+  if ((!strikeAmounts[Field.CURRENCY_A]) ||
+    (!strikeAmounts[Field.CURRENCY_B])) {
+    errorMessage = errorMessage ?? t`Enter a strike amount`
+  }
+
+  if (!parsedAmounts[Field.CURRENCY_A] || !parsedAmounts[Field.CURRENCY_B]) {
+    errorMessage = errorMessage ?? t`Enter an amount`
+  }
+
+  const { [Field.CURRENCY_A]: currencyAAmount, [Field.CURRENCY_B]: currencyBAmount } = parsedAmounts
+
+  if (currencyAAmount && currencyBalances?.[Field.CURRENCY_A]?.lessThan(currencyAAmount)) {
+    errorMessage = t`Insufficient ${currencies[Field.CURRENCY_A]?.symbol} balance`
+  }
+
+  if (currencyBAmount && currencyBalances?.[Field.CURRENCY_B]?.lessThan(currencyBAmount)) {
+    errorMessage = t`Insufficient ${currencies[Field.CURRENCY_B]?.symbol} balance`
+  }
+  return errorMessage
 }
 
 function handleErrorMessage(
@@ -552,6 +742,64 @@ export function useGetFakePool(
       return undefined
     }
   }, [feeAmount, invalidPrice, price, tokenA, tokenB])
+}
+
+export function useGetOhmDaiPrice(
+  currencyA: Currency | undefined,
+  currencyB: Currency | undefined,
+): {
+  bondPrice: Price<Currency, Currency> | undefined,
+  marketPrice:  Price<Currency, Currency> | undefined,
+} {  
+  const { chainId } = useActiveWeb3React()
+
+  const bondAddresses: (string | undefined) = chainId == undefined ? undefined : OLYMPUS_OHMDAI_BOND_ADDRESSES[chainId]
+  const reserveAddresses: (string | undefined) = chainId == undefined ? undefined : OLYMPUS_OHMDAI_RESERVE_ADDRESSES[chainId]
+
+  const bondContract = useContract(bondAddresses, BondDaiContract, true)
+  const pairContract = useContract(reserveAddresses, ReserveOhmDaiContract, true)
+  
+  const [ohmDaiPrice, setOhmDaiPrice] = useState<{
+    bondPrice: Price<Currency, Currency> | undefined,
+    marketPrice:  Price<Currency, Currency> | undefined,
+  }>({bondPrice: undefined, marketPrice: undefined });    
+  const ohmDaiPriceMemo = useMemo(() => ohmDaiPrice, [currencyA, currencyB]);
+  
+  async function queryPrice() {
+    if(bondContract == null || pairContract == null || currencyA == undefined || currencyB == undefined)
+    {
+      setOhmDaiPrice({bondPrice: undefined, marketPrice: undefined })
+    }
+    else
+    {
+      const reserves = await pairContract.getReserves();
+      const marketPrice = Number(reserves[1].toString()) / Number(reserves[0].toString());
+      const bMarketPrice = parseUnits(marketPrice.toString(), 18)     
+      //marketPrice = marketPrice / Math.pow(10, 9);
+      const bondPrice = await bondContract.bondPriceInUSD()
+      //bondPrice = Number(bondPrice.toString()) / Math.pow(10, 18)
+      //const bondDiscount = (marketPrice * Math.pow(10, 18) - Number(bondPrice.toString())) / Number(bondPrice.toString());
+      const newUpdate = {
+        bondPrice: new Price(currencyA, currencyB, 1, bondPrice),
+        marketPrice:  new Price(currencyA, currencyB, 1, bMarketPrice.toString())
+      }
+      if(ohmDaiPrice.bondPrice != undefined && ohmDaiPrice.bondPrice.toSignificant(6) != newUpdate.bondPrice.toSignificant(6) &&
+      ohmDaiPrice.marketPrice != undefined && ohmDaiPrice.marketPrice.toSignificant(6) != newUpdate.marketPrice.toSignificant(6))
+      {
+        setOhmDaiPrice(newUpdate)
+      }
+      else if(ohmDaiPrice.bondPrice == undefined && ohmDaiPrice.marketPrice == undefined)
+      {
+        setOhmDaiPrice(newUpdate)
+      }
+    }
+  }
+
+  useEffect(() => {   
+    queryPrice()
+  })
+
+  return ohmDaiPriceMemo
 }
 
 export function useGetPrice(

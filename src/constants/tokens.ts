@@ -10,6 +10,14 @@ export const AMPL = new Token(
   'AMPL',
   'Ampleforth'
 )
+
+export const OHM = new Token(
+  SupportedChainId.MAINNET,
+  '0x383518188C0C6d7730D91b2c03a03C837814a899',
+  18,
+  'OHM',
+  'Olympus'
+)
 export const DAI = new Token(
   SupportedChainId.MAINNET,
   '0x6B175474E89094C44Da98b954EedeAC495271d0F',

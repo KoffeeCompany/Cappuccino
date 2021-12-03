@@ -1,4 +1,5 @@
 import { useActiveWeb3React } from 'hooks/web3'
+import CreateOption from 'pages/CreateOption'
 import { Redirect, RouteComponentProps } from 'react-router-dom'
 import { WETH9_EXTENDED } from '../../constants/tokens'
 import AddLiquidity from './index'
@@ -28,5 +29,5 @@ export function RedirectDuplicateTokenIds(
   ) {
     return <Redirect to={`/create/${currencyIdA}`} />
   }
-  return <AddLiquidity {...props} />
+  return <CreateOption {...props} />
 }

@@ -27,7 +27,7 @@ export default function Basket() {
               className="typo-subTitle"
               style={{ color: theme.text2 }}
             >
-              Securing liquidity for protocols across DeFi
+              Hedge your position with the Ohmptions
             </Typography>
           </Grid>
           <Grid className="grid-side">

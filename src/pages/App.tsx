@@ -13,6 +13,8 @@ import { useModalOpen, useToggleModal } from '../state/application/hooks'
 import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
 import { RedirectDuplicateTokenIds } from './AddLiquidity/redirects'
 import Basket from './Basket'
+import Manage from './Manage'
+import Market from './Market'
 import Strategies from './Strategies'
 
 // Redirects to pool (market) but only replace the pathname
@@ -75,8 +77,10 @@ export default function App() {
             <Polling />
             <TopLevelModals />
             <Switch>
+              <Route exact strict path="/market2" component={Market} />
               <Route exact strict path="/market" component={Strategies} />
               <Route exact strict path="/basket" component={Basket} />
+              <Route exact strict path="/manage" component={Manage} />
               <Route
                 exact
                 strict
@@ -86,7 +90,7 @@ export default function App() {
               <Route
                 exact
                 strict
-                path="/create/:currencySymbolA?/:currencySymbolB?/:feeAmount?/:maturity?"
+                path="/create/:currencyIdA?/:currencyIdB?/:maturity?"
                 component={RedirectDuplicateTokenIds}
               />
               <Route component={RedirectPathToMarket} />
