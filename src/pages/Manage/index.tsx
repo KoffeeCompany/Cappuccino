@@ -20,6 +20,8 @@ import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-co
 import { unwrappedToken } from 'utils/unwrappedToken'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { Maturity } from 'constants/maturity'
+import { TYPE } from 'theme'
+import { useGetOhmDaiPrice } from 'state/mint/v3/hooks'
 
 export default function Manage(history: any) {
   const theme = useContext(ThemeContext)
@@ -43,6 +45,7 @@ export default function Manage(history: any) {
   const [strike, setStrike] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyB, 0))
   const [bcv, setBcv] = useState<number>(0)
   const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
+  const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
 
   async function onUpdateLiquidityOption() {
     //
@@ -104,8 +107,67 @@ export default function Manage(history: any) {
       </Container>
       <div className="plutus-view">
         <Paper elevation={0} className="ohm-card" style={{ background: theme.bg0 }}>
-          <Box className="bond-title">
-            <Grid>
+          <Box className="bond-title bond-price-data-row">
+            <div className="bond-price-data">
+              <Typography
+                variant="h5"
+                gutterBottom
+                component="div"
+                style={{ color: theme.text3, fontFamily: "'Inter var', sans-serif" }}
+              >
+                Current Bond price
+              </Typography>
+              <Typography
+                variant="h4"
+                gutterBottom
+                component="div"
+                style={{ color: theme.text1, fontWeight: 600, fontFamily: "'Inter var', sans-serif" }}
+              >
+                {`${bondPrice ? bondPrice.divide(Math.pow(10, token1.decimals)).toSignificant(6) : '0.0'} `}
+              </Typography>
+              <TYPE.main textAlign="center" fontSize="15px">
+                <Trans>
+                  {token1.symbol} per {token0.symbol}
+                </Trans>
+              </TYPE.main>
+            </div>
+            <div className="bond-price-data">
+              <Typography
+                variant="h5"
+                gutterBottom
+                component="div"
+                style={{ color: theme.text3, fontFamily: "'Inter var', sans-serif" }}
+              >
+                Current Market price
+              </Typography>
+              <Typography
+                variant="h4"
+                gutterBottom
+                component="div"
+                style={{ color: theme.text1, fontWeight: 600, fontFamily: "'Inter var', sans-serif" }}
+              >
+                {`${
+                  marketPrice
+                    ? marketPrice
+                        .divide(Math.pow(10, token0.decimals))
+                        .divide(Math.pow(10, token1.decimals))
+                        .toSignificant(6)
+                    : '0.0'
+                } `}
+              </Typography>
+              <TYPE.main textAlign="center" fontSize="15px">
+                <Trans>
+                  {token1.symbol} per {token0.symbol}
+                </Trans>
+              </TYPE.main>
+            </div>
+            <Grid
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+              }}
+            >
               <ButtonPrimary
                 as={Link}
                 to={`/create/${OHM.address}/${DAI.address}`}
@@ -113,9 +175,6 @@ export default function Manage(history: any) {
                   width: 'fit-content',
                   borderRadius: '4px',
                   fontFamily: "'Inter var', sans-serif",
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
                   textTransform: 'uppercase',
                   fontSize: '0.8125rem',
                   padding: '4px 10px',
@@ -127,12 +186,6 @@ export default function Manage(history: any) {
                 <Trans>Create Options</Trans>
               </ButtonPrimary>
             </Grid>
-            <Typography variant="h5" gutterBottom component="div" style={{ color: theme.text3 }}>
-              Total Liquidity Bonded
-            </Typography>
-            <Typography variant="h2" gutterBottom component="div" style={{ color: theme.text1, fontWeight: 'bold' }}>
-              $19,590,533
-            </Typography>
           </Box>
           <Grid className="grid-container bond-grid">
             <Grid className="grid-container grid-row">

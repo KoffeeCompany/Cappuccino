@@ -53,9 +53,6 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   const theme = useContext(ThemeContext)
   const [rows, setRows] = useState<any[]>([])
   const [darkMode, toggleDarkMode] = useDarkModeManager()
-  const currencyA = unwrappedToken(OHM)
-  const currencyB = unwrappedToken(DAI)
-  const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
   let row = 0
 
   const columns: GridColDef[] = [
@@ -128,10 +125,6 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   ]
 
   useEffect(() => {
-    const bp = bondPrice ? bondPrice.divide(Math.pow(10, currencyB.decimals)).toSignificant(6) : '0'
-    const mp = marketPrice
-      ? marketPrice.divide(Math.pow(10, currencyB.decimals)).divide(Math.pow(10, currencyA.decimals)).toSignificant(6)
-      : '0'
     setRows([
       createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, Maturity.FIVE_DAYS),
       createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, Maturity.FIVE_DAYS),
@@ -139,7 +132,7 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
       createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, Maturity.FIVE_DAYS),
       createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, Maturity.SEVEN_DAYS),
     ])
-  }, [bondPrice, marketPrice])
+  }, [])
 
   const useStyle = makeStyles({
     grid: {
