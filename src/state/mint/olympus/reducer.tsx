@@ -1,12 +1,13 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { Field, resetMintState } from '../actions'
-import { bcvValueInput, strikeValueInput, liquidityValueInput } from './actions'
+import { bcvValueInput, strikeValueInput, liquidityValueInput, notionalValueInput } from './actions'
 
 export interface MintState {
   readonly independentField: Field
   readonly bcvValue: string
   readonly strikeValue: string
   readonly liquidityValue: string
+  readonly notionalValue: string
 }
 
 export const initialState: MintState = {
@@ -14,6 +15,7 @@ export const initialState: MintState = {
   bcvValue: '',
   strikeValue: '',
   liquidityValue: '',
+  notionalValue: '',
 }
 
 export default createReducer<MintState>(initialState, (builder) =>
@@ -35,6 +37,12 @@ export default createReducer<MintState>(initialState, (builder) =>
       return {
         ...state,
         liquidityValue: typedValue,
+      }
+    })
+    .addCase(notionalValueInput, (state, { payload: { typedValue } }) => {
+      return {
+        ...state,
+        notionalValue: typedValue,
       }
     })
 )

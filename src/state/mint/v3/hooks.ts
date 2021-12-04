@@ -37,7 +37,7 @@ import { abi as BondDaiContract } from '../../../abis/olympus/bonds/DaiContract.
 import { abi as ReserveOhmDaiContract } from '../../../abis/olympus/reserves/OhmDai.json';
 import { OLYMPUS_OHMDAI_BOND_ADDRESSES, OLYMPUS_OHMDAI_RESERVE_ADDRESSES } from 'constants/addresses'
 import { useContract } from 'hooks/useContract'
-import { bcvValueInput, strikeValueInput,liquidityValueInput } from '../olympus/actions'
+import { bcvValueInput, strikeValueInput,liquidityValueInput, notionalValueInput } from '../olympus/actions'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 
 export function useV3MintState(): AppState['mintV3'] {
@@ -116,6 +116,7 @@ export function useOlympusMintActionHandlers(): {
   onBcvInput: (typedValue: string) => void
   onStrikeInput: (typedValue: string) => void
   onLiquidityInput: (typedValue: string) => void
+  onNotionalInput: (typedValue: string) => void
 } {
   const dispatch = useAppDispatch()
 
@@ -135,6 +136,14 @@ export function useOlympusMintActionHandlers(): {
     [dispatch]
   )
 
+  const onNotionalInput = useCallback(
+    (typedValue: string) => {
+      dispatch(notionalValueInput({ field: Field.CURRENCY_A, typedValue }))
+      dispatch(notionalValueInput({ field: Field.CURRENCY_B, typedValue }))
+    },
+    [dispatch]
+  )
+
   const onBcvInput = useCallback(
     (typedValue: string) => {
       dispatch(bcvValueInput({ typedValue }))
@@ -145,7 +154,8 @@ export function useOlympusMintActionHandlers(): {
   return {
     onBcvInput,
     onStrikeInput,
-    onLiquidityInput
+    onLiquidityInput,
+    onNotionalInput
   }
 }
 
@@ -162,12 +172,13 @@ export function useOlympusDerivedMintInfo(
     parsedAmounts: { [field in Field]?: CurrencyAmount<Currency> }
     strikeAmounts: { [field in Field]?: CurrencyAmount<Currency> }
     liquidityAmounts: { [field in Field]?: CurrencyAmount<Currency> }
+    notionalAmounts: { [field in Field]?: CurrencyAmount<Currency> }    
     errorMessage?: string
     invertPrice: boolean
 } {
   const { account } = useActiveWeb3React()
 
-  const { independentField, bcvValue, strikeValue, liquidityValue } = useOlympusMintState()
+  const { independentField, bcvValue, strikeValue, liquidityValue, notionalValue } = useOlympusMintState()
   
   const dependentField = independentField === Field.CURRENCY_A ? Field.CURRENCY_B : Field.CURRENCY_A
 
@@ -239,6 +250,16 @@ export function useOlympusDerivedMintInfo(
     currencies[dependentField]
   )
 
+  const independentNotionalAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
+    notionalValue,
+    currencies[independentField]
+  )
+
+  const dependentNotionalAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
+    notionalValue,
+    currencies[dependentField]
+  )
+
   const parsedAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined } = useMemo(() => {
     return {
       [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentAmount : dependentAmount,
@@ -260,10 +281,18 @@ export function useOlympusDerivedMintInfo(
     }
   }, [independentLiquidityAmount, dependentLiquidityAmount, independentField])   
 
+  const notionalAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined } = useMemo(() => {
+    return {
+      [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentNotionalAmount : dependentNotionalAmount,
+      [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentNotionalAmount : independentNotionalAmount,
+    }
+  }, [independentNotionalAmount, dependentNotionalAmount, independentField])   
+
   const errorMessage: string | undefined = handleOlympusErrorMessage(
     account, 
     bcvValue, 
     parsedAmounts, 
+    notionalAmounts,
     strikeAmounts, 
     liquidityAmounts,
     currencyBalances, 
@@ -276,6 +305,7 @@ export function useOlympusDerivedMintInfo(
     parsedAmounts,
     strikeAmounts,
     liquidityAmounts,
+    notionalAmounts,
     bondPrice,
     marketPrice, 
     errorMessage,
@@ -542,6 +572,7 @@ function handleOlympusErrorMessage(
   account: string | null | undefined, 
   bcvValue: string | null | undefined,
   parsedAmounts: { CURRENCY_A: CurrencyAmount<Currency> | undefined; CURRENCY_B: CurrencyAmount<Currency> | undefined }, 
+  notionalAmounts: { CURRENCY_A: CurrencyAmount<Currency> | undefined; CURRENCY_B: CurrencyAmount<Currency> | undefined }, 
   strikeAmounts: { CURRENCY_A: CurrencyAmount<Currency> | undefined; CURRENCY_B: CurrencyAmount<Currency> | undefined }, 
   liquidityAmounts: { CURRENCY_A: CurrencyAmount<Currency> | undefined; CURRENCY_B: CurrencyAmount<Currency> | undefined }, 
   currencyBalances: { CURRENCY_A?: CurrencyAmount<Currency> | undefined; CURRENCY_B?: CurrencyAmount<Currency> | undefined }, 
@@ -566,15 +597,15 @@ function handleOlympusErrorMessage(
     errorMessage = errorMessage ?? t`Enter a liquidity amount`
   }
 
-  if (!parsedAmounts[Field.CURRENCY_A] || !parsedAmounts[Field.CURRENCY_B]) {
-    errorMessage = errorMessage ?? t`Enter an amount`
-  }
+  // if (!parsedAmounts[Field.CURRENCY_A] || !parsedAmounts[Field.CURRENCY_B]) {
+  //   errorMessage = errorMessage ?? t`Enter an amount`
+  // }
 
-  const { [Field.CURRENCY_A]: currencyAAmount, [Field.CURRENCY_B]: currencyBAmount } = parsedAmounts
+  const { [Field.CURRENCY_A]: currencyAAmount, [Field.CURRENCY_B]: currencyBAmount } = notionalAmounts
 
-  if (currencyAAmount && currencyBalances?.[Field.CURRENCY_A]?.lessThan(currencyAAmount)) {
-    errorMessage = t`Insufficient ${currencies[Field.CURRENCY_A]?.symbol} balance`
-  }
+  // if (currencyAAmount && currencyBalances?.[Field.CURRENCY_A]?.lessThan(currencyAAmount)) {
+  //   errorMessage = t`Insufficient ${currencies[Field.CURRENCY_A]?.symbol} balance`
+  // }
 
   if (currencyBAmount && currencyBalances?.[Field.CURRENCY_B]?.lessThan(currencyBAmount)) {
     errorMessage = t`Insufficient ${currencies[Field.CURRENCY_B]?.symbol} balance`

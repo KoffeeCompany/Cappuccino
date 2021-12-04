@@ -25,7 +25,7 @@ import {
   Wrapper,
 } from './styled'
 import ReactGA from 'react-ga'
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, OPTION_ADDRESSES, RESOLVER_ADDRESSES } from 'constants/addresses'
+import { CAPPUCCINO_CONTRACT_ADDRESSES, OPTION_ADDRESSES, RESOLVER_ADDRESSES } from 'constants/addresses'
 import { useOptionContract } from 'hooks/useContract'
 import Row, { RowBetween, RowFixed, AutoRow } from '../../components/Row'
 import {
@@ -145,11 +145,11 @@ export default function CreateOption({
   // check whether the user has approved the router on the tokens
   const [approvalA, approveACallback] = useApproveCallback(
     argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_A],
-    chainId ? NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId] : undefined
+    chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
   )
   const [approvalB, approveBCallback] = useApproveCallback(
     argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_B],
-    chainId ? NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId] : undefined
+    chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
   )
 
   const handleMaturitySelectWithEvent = useCallback(

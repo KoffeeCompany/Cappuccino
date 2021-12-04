@@ -122,3 +122,15 @@ export const OLYMPUS_OHMDAI_RESERVE_ADDRESSES: AddressMap = constructSameAddress
     SupportedChainId.LOCALHOST,
   ]
 )
+
+export const CAPPUCCINO_CONTRACT_ADDRESSES: AddressMap = constructSameAddressMap(
+  '0x34d7d7Aaf50AD4944B70B320aCB24C95fa2def7c',
+  [
+    SupportedChainId.OPTIMISM,
+    SupportedChainId.OPTIMISTIC_KOVAN,
+    SupportedChainId.ARBITRUM_ONE,
+    SupportedChainId.ARBITRUM_RINKEBY,
+    SupportedChainId.GOERLI,
+    SupportedChainId.LOCALHOST,
+  ]
+)
