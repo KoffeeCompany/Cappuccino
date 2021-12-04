@@ -72,13 +72,7 @@ export default function Manage(history: any) {
                 maturity={maturity}
               />
             )}
-            bottomContent={() => (
-              <ButtonPrimary style={{ marginTop: '1rem', borderRadius: '4px' }} onClick={onUpdateLiquidityOption}>
-                <Text fontWeight={500} fontSize={20}>
-                  <Trans>Update liquidity</Trans>
-                </Text>
-              </ButtonPrimary>
-            )}
+            bottomContent={undefined}
           />
         )}
         pendingText={undefined}

@@ -82,7 +82,7 @@ export const SetNotional = ({
     onStrikeInput(strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6))
     onLiquidityInput(liquidity.multiply(Math.pow(10, liquidity.currency.decimals)).toSignificant(6))
     onBcvInput(bcv.toString())
-  }, [liquidity])
+  }, [liquidity, bcv, strike])
 
   const formattedNotionalAmounts = {
     [independentField]: notionalValue,
@@ -118,7 +118,12 @@ export const SetNotional = ({
         {(approvalB === ApprovalState.NOT_APPROVED || approvalB === ApprovalState.PENDING) && isValid && (
           <RowBetween>
             {showApprovalB && (
-              <ButtonPrimary onClick={approveBCallback} disabled={approvalB === ApprovalState.PENDING} width={'100%'}>
+              <ButtonPrimary
+                onClick={approveBCallback}
+                disabled={approvalB === ApprovalState.PENDING}
+                width={'100%'}
+                $borderRadius="4px"
+              >
                 {approvalB === ApprovalState.PENDING ? (
                   <Dots>
                     <Trans>Approving {currencies[Field.CURRENCY_B]?.symbol}</Trans>
@@ -136,7 +141,7 @@ export const SetNotional = ({
             onBuyOption()
           }}
           disabled={!isValid || (!argentWalletContract && approvalB !== ApprovalState.APPROVED)}
-          error={!isValid && !!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]}
+          error={!isValid && !!notionalAmounts[Field.CURRENCY_B]}
         >
           <Text fontWeight={500}>{errorMessage ? errorMessage : <Trans>{`Buy ${optionType}`}</Trans>}</Text>
         </ButtonError>

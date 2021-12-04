@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
+import { Text } from 'rebass'
 import { useState, useCallback, useContext, ReactNode, useEffect } from 'react'
-import { Position } from '@uniswap/v3-sdk'
 import { LightCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import { TYPE } from 'theme'
@@ -23,7 +23,13 @@ import { OptionType } from 'state/data/generated'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { useOlympusDerivedMintInfo, useOlympusMintActionHandlers, useOlympusMintState } from 'state/mint/v3/hooks'
 import { useUSDCValue } from 'hooks/useUSDCPrice'
-import { DynamicSection } from './styled'
+import { Dots, DynamicSection, MediumOnly } from './styled'
+import { ButtonError, ButtonLight, ButtonPrimary } from 'components/Button'
+import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
+import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
+import { CAPPUCCINO_CONTRACT_ADDRESSES } from 'constants/addresses'
+import { useActiveWeb3React } from 'hooks/web3'
+import { useWalletModalToggle } from 'state/application/hooks'
 
 export const AddLiquidity = ({
   token0,
@@ -47,6 +53,8 @@ export const AddLiquidity = ({
   optionType?: OptionType
 }) => {
   const theme = useContext(ThemeContext)
+  const { account, chainId, library } = useActiveWeb3React()
+  const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
 
   const currency0 = unwrappedToken(token0!)
   const currency1 = unwrappedToken(token1!)
@@ -60,8 +68,10 @@ export const AddLiquidity = ({
   const { independentField, bcvValue, strikeValue, liquidityValue } = useOlympusMintState()
 
   useEffect(() => {
+    onStrikeInput(strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6))
     onLiquidityInput(liquidity.multiply(Math.pow(10, liquidity.currency.decimals)).toSignificant(6))
-  }, [liquidity])
+    onBcvInput(bcv.toString())
+  }, [liquidity, bcv, strike])
 
   const {
     dependentField,
@@ -86,6 +96,60 @@ export const AddLiquidity = ({
     [Field.CURRENCY_A]: useUSDCValue(liquidityAmounts[Field.CURRENCY_A]),
     [Field.CURRENCY_B]: useUSDCValue(liquidityAmounts[Field.CURRENCY_B]),
   }
+
+  const argentWalletContract = useArgentWalletContract()
+
+  const showApprovalA = true
+  const [approvalA, approveACallback] = useApproveCallback(
+    argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_A],
+    chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
+  )
+
+  const isValid = !errorMessage && liquidityValue != ''
+
+  async function onUpdateLiquidity() {
+    //
+  }
+
+  const Buttons = () =>
+    !account ? (
+      <ButtonLight onClick={toggleWalletModal} $borderRadius="4px" padding={'12px'}>
+        <Trans>Connect to a wallet</Trans>
+      </ButtonLight>
+    ) : (
+      <AutoColumn gap={'md'}>
+        {(approvalA === ApprovalState.NOT_APPROVED || approvalA === ApprovalState.PENDING) && isValid && (
+          <RowBetween>
+            {showApprovalA && (
+              <ButtonPrimary
+                onClick={approveACallback}
+                disabled={approvalA === ApprovalState.PENDING}
+                width={'100%'}
+                $borderRadius="4px"
+              >
+                {approvalA === ApprovalState.PENDING ? (
+                  <Dots>
+                    <Trans>Approving {currencies[Field.CURRENCY_A]?.symbol}</Trans>
+                  </Dots>
+                ) : (
+                  <Trans>Approve {currencies[Field.CURRENCY_A]?.symbol}</Trans>
+                )}
+              </ButtonPrimary>
+            )}
+          </RowBetween>
+        )}
+        <ButtonError
+          style={{ borderRadius: '4px' }}
+          onClick={() => {
+            onUpdateLiquidity()
+          }}
+          disabled={!isValid || (!argentWalletContract && approvalA !== ApprovalState.APPROVED)}
+          error={!isValid && !!liquidityAmounts[Field.CURRENCY_A]}
+        >
+          <Text fontWeight={500}>{errorMessage ? errorMessage : <Trans>{`Update liquidity`}</Trans>}</Text>
+        </ButtonError>
+      </AutoColumn>
+    )
 
   return (
     <AutoColumn gap="md" style={{ marginTop: '0.5rem' }}>
@@ -222,6 +286,9 @@ export const AddLiquidity = ({
           </LightCard>
         </RowBetween>
       </AutoColumn>
+      <MediumOnly style={{ marginTop: '10px' }}>
+        <Buttons />
+      </MediumOnly>
     </AutoColumn>
   )
 }
