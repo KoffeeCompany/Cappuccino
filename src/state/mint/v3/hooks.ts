@@ -799,7 +799,7 @@ export function useGetOhmDaiPrice(
     bondPrice: Price<Currency, Currency> | undefined,
     marketPrice:  Price<Currency, Currency> | undefined,
   }>({bondPrice: undefined, marketPrice: undefined });    
-  const ohmDaiPriceMemo = useMemo(() => ohmDaiPrice, [currencyA, currencyB]);
+  const ohmDaiPriceMemo = useMemo(() => ohmDaiPrice, [ohmDaiPrice]);
   
   async function queryPrice() {
     if(bondContract == null || pairContract == null || currencyA == undefined || currencyB == undefined)

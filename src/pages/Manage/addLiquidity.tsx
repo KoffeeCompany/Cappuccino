@@ -24,22 +24,22 @@ export const AddLiquidity = ({
   token0,
   token1,
   title,
-  inRange,
+  liquidity,
   baseCurrencyDefault,
   strike,
   bondPrice,
   marketPrice,
-  optionValue,
+  bcv,
   maturity,
   optionType,
 }: {
   token0: Token
   token1: Token
   title?: ReactNode
-  inRange: boolean
+  liquidity: CurrencyAmount<Currency>
   baseCurrencyDefault?: Currency | undefined
-  strike?: number
-  optionValue?: CurrencyAmount<Currency>
+  strike: CurrencyAmount<Currency>
+  bcv: number
   bondPrice: Price<Currency, Currency> | undefined
   marketPrice: Price<Currency, Currency> | undefined
   maturity?: Maturity
@@ -119,7 +119,7 @@ export const AddLiquidity = ({
         </RowBetween>
 
         <RowBetween>
-          <LightCard width="48%" padding="8px">
+          {/* <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
                 <Trans>Premium</Trans>
@@ -129,7 +129,7 @@ export const AddLiquidity = ({
                 <Trans>{optionValue?.currency.symbol}</Trans>
               </TYPE.main>
             </AutoColumn>
-          </LightCard>
+          </LightCard> */}
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">

@@ -13,22 +13,20 @@ const Wrapper = styled.div`
 export function Review({
   token0,
   token1,
-  outOfRange,
+  liquidity,
   strike,
-  optionValue,
+  bcv,
   maturity,
   bondPrice,
   marketPrice,
 }: {
   token0: Token
   token1: Token
-  existingPosition?: Position
-  parsedAmounts: { [field in Field]?: CurrencyAmount<Currency> }
+  liquidity: CurrencyAmount<Currency>
   bondPrice?: Price<Currency, Currency>
   marketPrice?: Price<Currency, Currency>
-  outOfRange: boolean
-  strike?: number
-  optionValue?: CurrencyAmount<Currency>
+  strike: CurrencyAmount<Currency>
+  bcv: number
   maturity?: Maturity
 }) {
   return (
@@ -37,10 +35,10 @@ export function Review({
         <AddLiquidity
           token0={token0}
           token1={token1}
-          inRange={!outOfRange}
+          liquidity={liquidity}
           strike={strike}
           title={'Option parameter'}
-          optionValue={optionValue}
+          bcv={bcv}
           maturity={maturity}
           bondPrice={bondPrice}
           marketPrice={marketPrice}

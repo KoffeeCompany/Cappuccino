@@ -14,7 +14,7 @@ export const AMPL = new Token(
 export const OHM = new Token(
   SupportedChainId.MAINNET,
   '0x383518188C0C6d7730D91b2c03a03C837814a899',
-  18,
+  9,
   'OHM',
   'Olympus'
 )

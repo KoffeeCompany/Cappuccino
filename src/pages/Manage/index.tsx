@@ -16,6 +16,10 @@ import { Link } from 'react-router-dom'
 import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
 import { Review } from './Review'
 import { DAI, OHM } from 'constants/tokens'
+import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-core'
+import { unwrappedToken } from 'utils/unwrappedToken'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { Maturity } from 'constants/maturity'
 
 export default function Manage(history: any) {
   const theme = useContext(ThemeContext)
@@ -30,6 +34,17 @@ export default function Manage(history: any) {
     }
     setTxHash('')
   }, [history, txHash])
+
+  const token0 = OHM
+  const currencyA = unwrappedToken(token0)
+  const token1 = DAI
+  const currencyB = unwrappedToken(token1)
+  const [liquidity, setLiquidity] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyA, 0))
+  const [strike, setStrike] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyB, 0))
+  const [bcv, setBcv] = useState<number>(0)
+  const [bondPrice, setBondPrice] = useState<Price<Currency, Currency>>(new Price(currencyA, currencyB, 1, 0))
+  const [marketPrice, setMarketPrice] = useState<Price<Currency, Currency>>(new Price(currencyA, currencyB, 1, 0))
+  const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
 
   async function onUpdateLiquidityOption() {
     //
@@ -47,25 +62,16 @@ export default function Manage(history: any) {
             title={t`Add liquidity`}
             onDismiss={handleDismissConfirmation}
             topContent={() => (
-              // <Review
-              //   parsedAmounts={parsedAmounts}
-              //   position={position}
-              //   existingPosition={existingPosition}
-              //   priceLower={priceLower}
-              //   priceUpper={priceUpper}
-              //   outOfRange={outOfRange}
-              //   ticksAtLimit={ticksAtLimit}
-              //   strike={
-              //     price == undefined || priceUpper == undefined
-              //       ? tickLower!
-              //       : (invertPrice ? price.invert().lessThan(priceUpper.invert()) : price.lessThan(priceUpper))
-              //       ? tickLower!
-              //       : tickUpper!
-              //   }
-              //   optionValue={optionValueCurrencyAmount}
-              //   maturity={maturity}
-              // />
-              <div></div>
+              <Review
+                token0={token0}
+                token1={token1}
+                liquidity={liquidity}
+                strike={strike}
+                bcv={bcv}
+                bondPrice={bondPrice}
+                marketPrice={marketPrice}
+                maturity={maturity}
+              />
             )}
             bottomContent={() => (
               <ButtonPrimary style={{ marginTop: '1rem', borderRadius: '4px' }} onClick={onUpdateLiquidityOption}>
@@ -134,7 +140,29 @@ export default function Manage(history: any) {
           </Box>
           <Grid className="grid-container bond-grid">
             <Grid className="grid-container grid-row">
-              <StickyHeadTable onUserClick={() => setShowAddLiquidity(true)}></StickyHeadTable>
+              <StickyHeadTable
+                onUserClick={(row) => {
+                  setLiquidity(CurrencyAmount.fromRawAmount(currencyA, row.liquidity))
+                  setStrike(CurrencyAmount.fromRawAmount(currencyB, row.strike))
+                  setBcv(parseFloat(row.bcv))
+                  setBondPrice(
+                    new Price(currencyA, currencyB, 1, parseUnits(row.bondPrice, currencyB.decimals).toString())
+                  )
+                  setMarketPrice(
+                    new Price(
+                      currencyA,
+                      currencyB,
+                      1,
+                      parseUnits(
+                        parseUnits(row.marketPrice, currencyA.decimals).toString(),
+                        currencyB.decimals
+                      ).toString()
+                    )
+                  )
+                  setMaturity(Maturity.FIVE_DAYS)
+                  setShowAddLiquidity(true)
+                }}
+              ></StickyHeadTable>
             </Grid>
           </Grid>
         </Paper>
