@@ -17,14 +17,10 @@ export function Review({
   strike,
   bcv,
   maturity,
-  bondPrice,
-  marketPrice,
 }: {
   token0: Token
   token1: Token
   liquidity: CurrencyAmount<Currency>
-  bondPrice?: Price<Currency, Currency>
-  marketPrice?: Price<Currency, Currency>
   strike: CurrencyAmount<Currency>
   bcv: number
   maturity?: Maturity
@@ -40,8 +36,6 @@ export function Review({
           title={'Option parameter'}
           bcv={bcv}
           maturity={maturity}
-          bondPrice={bondPrice}
-          marketPrice={marketPrice}
         />
       </AutoColumn>
     </Wrapper>

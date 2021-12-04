@@ -42,8 +42,6 @@ export default function Manage(history: any) {
   const [liquidity, setLiquidity] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyA, 0))
   const [strike, setStrike] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyB, 0))
   const [bcv, setBcv] = useState<number>(0)
-  const [bondPrice, setBondPrice] = useState<Price<Currency, Currency>>(new Price(currencyA, currencyB, 1, 0))
-  const [marketPrice, setMarketPrice] = useState<Price<Currency, Currency>>(new Price(currencyA, currencyB, 1, 0))
   const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
 
   async function onUpdateLiquidityOption() {
@@ -59,7 +57,7 @@ export default function Manage(history: any) {
         hash={txHash}
         content={() => (
           <ConfirmationModalContent
-            title={t`Add liquidity`}
+            title={t`Update liquidity`}
             onDismiss={handleDismissConfirmation}
             topContent={() => (
               <Review
@@ -68,15 +66,13 @@ export default function Manage(history: any) {
                 liquidity={liquidity}
                 strike={strike}
                 bcv={bcv}
-                bondPrice={bondPrice}
-                marketPrice={marketPrice}
                 maturity={maturity}
               />
             )}
             bottomContent={() => (
               <ButtonPrimary style={{ marginTop: '1rem', borderRadius: '4px' }} onClick={onUpdateLiquidityOption}>
                 <Text fontWeight={500} fontSize={20}>
-                  <Trans>Add liquidity</Trans>
+                  <Trans>Update liquidity</Trans>
                 </Text>
               </ButtonPrimary>
             )}
@@ -145,20 +141,6 @@ export default function Manage(history: any) {
                   setLiquidity(CurrencyAmount.fromRawAmount(currencyA, row.liquidity))
                   setStrike(CurrencyAmount.fromRawAmount(currencyB, row.strike))
                   setBcv(parseFloat(row.bcv))
-                  setBondPrice(
-                    new Price(currencyA, currencyB, 1, parseUnits(row.bondPrice, currencyB.decimals).toString())
-                  )
-                  setMarketPrice(
-                    new Price(
-                      currencyA,
-                      currencyB,
-                      1,
-                      parseUnits(
-                        parseUnits(row.marketPrice, currencyA.decimals).toString(),
-                        currencyB.decimals
-                      ).toString()
-                    )
-                  )
                   setMaturity(Maturity.FIVE_DAYS)
                   setShowAddLiquidity(true)
                 }}

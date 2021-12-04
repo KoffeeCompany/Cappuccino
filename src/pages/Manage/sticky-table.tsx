@@ -21,8 +21,6 @@ function createData(
   liquidity: number,
   bcv: number,
   strike: number,
-  bondPrice: string,
-  marketPrice: string,
   maturity: number
 ) {
   const pair = currencyA + '/' + currencyB
@@ -33,8 +31,6 @@ function createData(
     liquidity: liquidity,
     bcv: bcv,
     strike: strike,
-    bondPrice: bondPrice,
-    marketPrice: marketPrice,
     maturity: maturity,
   }
 }
@@ -69,36 +65,28 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
       field: 'liquidity',
       headerName: 'Liquidity (OHM)',
       align: 'right',
+      flex: 1,
       valueFormatter: formatNumber,
     },
     {
       field: 'bcv',
       headerName: 'BCV value',
       align: 'right',
+      flex: 1,
       valueFormatter: formatNumber,
     },
     {
       field: 'strike',
       headerName: 'Strike (DAI)',
       align: 'right',
-      valueFormatter: formatNumber,
-    },
-    {
-      field: 'bondPrice',
-      headerName: 'Bond price',
-      align: 'right',
-      valueFormatter: formatNumber,
-    },
-    {
-      field: 'marketPrice',
-      headerName: 'Market price',
-      align: 'right',
+      flex: 1,
       valueFormatter: formatNumber,
     },
     {
       field: 'maturity',
       headerName: 'Maturity',
       align: 'right',
+      flex: 1,
     },
     {
       field: 'action',
@@ -132,7 +120,7 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
             }}
             onClick={onClick}
           >
-            Add liquidity
+            Update liquidity
           </Button>
         )
       },
@@ -145,11 +133,11 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
       ? marketPrice.divide(Math.pow(10, currencyB.decimals)).divide(Math.pow(10, currencyA.decimals)).toSignificant(6)
       : '0'
     setRows([
-      createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, bp, mp, Maturity.FIVE_DAYS),
-      createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, bp, mp, Maturity.FIVE_DAYS),
-      createData(row++, 'PUT', 'OHM', 'DAI', 130, 1.05, 690, bp, mp, Maturity.FIVE_DAYS),
-      createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, bp, mp, Maturity.FIVE_DAYS),
-      createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, bp, mp, Maturity.SEVEN_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, Maturity.FIVE_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, Maturity.FIVE_DAYS),
+      createData(row++, 'PUT', 'OHM', 'DAI', 130, 1.05, 690, Maturity.FIVE_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, Maturity.FIVE_DAYS),
+      createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, Maturity.SEVEN_DAYS),
     ])
   }, [bondPrice, marketPrice])
 

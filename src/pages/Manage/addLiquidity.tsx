@@ -1,4 +1,5 @@
-import { useState, useCallback, useContext, ReactNode } from 'react'
+/* eslint-disable prefer-const */
+import { useState, useCallback, useContext, ReactNode, useEffect } from 'react'
 import { Position } from '@uniswap/v3-sdk'
 import { LightCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
@@ -14,11 +15,15 @@ import DoubleCurrencyLogo from 'components/DoubleLogo'
 import RangeBadge from 'components/Badge/RangeBadge'
 import { ThemeContext } from 'styled-components/macro'
 import JSBI from 'jsbi'
-import { Bound } from 'state/mint/v3/actions'
+import { Bound, Field } from 'state/mint/v3/actions'
 import { formatTickPrice } from 'utils/formatTickPrice'
 import { CurrencyAmount, Price } from '@uniswap/sdk-core'
 import { Maturity } from 'constants/maturity'
 import { OptionType } from 'state/data/generated'
+import CurrencyInputPanel from 'components/CurrencyInputPanel'
+import { useOlympusDerivedMintInfo, useOlympusMintActionHandlers, useOlympusMintState } from 'state/mint/v3/hooks'
+import { useUSDCValue } from 'hooks/useUSDCPrice'
+import { DynamicSection } from './styled'
 
 export const AddLiquidity = ({
   token0,
@@ -27,8 +32,6 @@ export const AddLiquidity = ({
   liquidity,
   baseCurrencyDefault,
   strike,
-  bondPrice,
-  marketPrice,
   bcv,
   maturity,
   optionType,
@@ -40,8 +43,6 @@ export const AddLiquidity = ({
   baseCurrencyDefault?: Currency | undefined
   strike: CurrencyAmount<Currency>
   bcv: number
-  bondPrice: Price<Currency, Currency> | undefined
-  marketPrice: Price<Currency, Currency> | undefined
   maturity?: Maturity
   optionType?: OptionType
 }) => {
@@ -50,23 +51,41 @@ export const AddLiquidity = ({
   const currency0 = unwrappedToken(token0!)
   const currency1 = unwrappedToken(token1!)
 
-  // track which currency should be base
-  const [baseCurrency, setBaseCurrency] = useState(
-    baseCurrencyDefault
-      ? baseCurrencyDefault === currency1
-        ? currency1
-        : baseCurrencyDefault === currency0
-        ? currency0
-        : currency1
-      : currency1
-  )
+  const baseCurrency = currency0
+  const tmpQuoteCurrency = currency1
+  // prevent an error if they input ETH/WETH
+  const quoteCurrency = baseCurrency && tmpQuoteCurrency && token0.equals(token1) ? undefined : tmpQuoteCurrency
 
-  const sorted = baseCurrency === currency0
-  const quoteCurrency = sorted ? currency1 : currency0
+  // mint state
+  const { independentField, bcvValue, strikeValue, liquidityValue } = useOlympusMintState()
 
-  const handleRateChange = useCallback(() => {
-    setBaseCurrency(quoteCurrency)
-  }, [quoteCurrency])
+  useEffect(() => {
+    onLiquidityInput(liquidity.multiply(Math.pow(10, liquidity.currency.decimals)).toSignificant(6))
+  }, [liquidity])
+
+  const {
+    dependentField,
+    currencies,
+    currencyBalances,
+    parsedAmounts,
+    strikeAmounts,
+    liquidityAmounts,
+    bondPrice,
+    marketPrice,
+    errorMessage,
+    invertPrice,
+  } = useOlympusDerivedMintInfo(baseCurrency ?? undefined, quoteCurrency ?? undefined, baseCurrency ?? undefined)
+  const { onBcvInput, onStrikeInput, onLiquidityInput } = useOlympusMintActionHandlers()
+
+  const formattedLiquidityAmounts = {
+    [independentField]: liquidityValue,
+    [dependentField]: liquidityValue,
+  }
+
+  const usdcLiquidityValues = {
+    [Field.CURRENCY_A]: useUSDCValue(liquidityAmounts[Field.CURRENCY_A]),
+    [Field.CURRENCY_B]: useUSDCValue(liquidityAmounts[Field.CURRENCY_B]),
+  }
 
   return (
     <AutoColumn gap="md" style={{ marginTop: '0.5rem' }}>
@@ -83,68 +102,63 @@ export const AddLiquidity = ({
           </TYPE.label>
         </RowFixed>
       </RowBetween>
-
-      <LightCard>
+      <DynamicSection>
         <AutoColumn gap="md">
-          <RowBetween>
-            <RowFixed>
-              <CurrencyLogo currency={currency0} />
-              <TYPE.label ml="8px">{currency0?.symbol}</TYPE.label>
-            </RowFixed>
-            <RowFixed>
-              <TYPE.label mr="8px">{0}</TYPE.label>
-            </RowFixed>
-          </RowBetween>
-          <RowBetween>
-            <RowFixed>
-              <CurrencyLogo currency={currency1} />
-              <TYPE.label ml="8px">{currency1?.symbol}</TYPE.label>
-            </RowFixed>
-            <RowFixed>
-              <TYPE.label mr="8px">{'0'}</TYPE.label>
-            </RowFixed>
-          </RowBetween>
-          <Break />
-        </AutoColumn>
-      </LightCard>
+          <TYPE.label>
+            <Trans>Liquidity</Trans>
+          </TYPE.label>
 
+          <CurrencyInputPanel
+            value={formattedLiquidityAmounts[Field.CURRENCY_A]}
+            onUserInput={onLiquidityInput}
+            onMax={() => {
+              //
+            }}
+            showMaxButton={false}
+            currency={currencies[Field.CURRENCY_A]}
+            id="liquidity-input-tokena"
+            fiatValue={usdcLiquidityValues[Field.CURRENCY_A]}
+            hideBalance={true}
+            locked={false}
+          />
+        </AutoColumn>
+      </DynamicSection>
       <AutoColumn gap="md">
         <RowBetween>
-          {title ? <TYPE.main>{title}</TYPE.main> : <div />}
-          <RateToggle
-            currencyA={sorted ? currency0 : currency1}
-            currencyB={sorted ? currency1 : currency0}
-            handleRateToggle={handleRateChange}
-          />
+          <TYPE.main>Strike</TYPE.main>
         </RowBetween>
 
         <RowBetween>
-          {/* <LightCard width="48%" padding="8px">
-            <AutoColumn gap="4px" justify="center">
-              <TYPE.main fontSize="12px">
-                <Trans>Premium</Trans>
-              </TYPE.main>
-              <TYPE.mediumHeader textAlign="center">{`${optionValue?.toSignificant(4)}`}</TYPE.mediumHeader>
-              <TYPE.main textAlign="center" fontSize="12px">
-                <Trans>{optionValue?.currency.symbol}</Trans>
-              </TYPE.main>
-            </AutoColumn>
-          </LightCard> */}
-          <LightCard width="48%" padding="8px">
-            <AutoColumn gap="4px" justify="center">
-              <TYPE.main fontSize="12px">
-                <Trans>Strike tick</Trans>
-              </TYPE.main>
-              <TYPE.mediumHeader>{`${strike}`}</TYPE.mediumHeader>
-              <TYPE.main textAlign="center" fontSize="12px">
-                <Trans>
-                  {quoteCurrency.symbol} per {baseCurrency.symbol}
-                </Trans>
-              </TYPE.main>
+          <LightCard>
+            <AutoColumn gap="md">
+              <RowBetween>
+                <RowFixed>
+                  <CurrencyLogo currency={strike.currency} />
+                  <TYPE.label ml="8px">{strike.currency?.symbol}</TYPE.label>
+                </RowFixed>
+                <RowFixed>
+                  <TYPE.label mr="8px">
+                    {strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6)}
+                  </TYPE.label>
+                </RowFixed>
+              </RowBetween>
             </AutoColumn>
           </LightCard>
         </RowBetween>
+      </AutoColumn>
+
+      <AutoColumn gap="md">
+        <RowBetween>{title ? <TYPE.main>{title}</TYPE.main> : <div />}</RowBetween>
+
         <RowBetween>
+          <LightCard width="48%" padding="8px">
+            <AutoColumn gap="4px" justify="center">
+              <TYPE.main fontSize="12px">
+                <Trans>BCV</Trans>
+              </TYPE.main>
+              <TYPE.mediumHeader>{`${bcv}`}</TYPE.mediumHeader>
+            </AutoColumn>
+          </LightCard>
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
@@ -159,21 +173,44 @@ export const AddLiquidity = ({
                   ? '1 month'
                   : '3 months'
               }`}</TYPE.mediumHeader>
-              <TYPE.main textAlign="center" fontSize="12px">
-                &nbsp;
+            </AutoColumn>
+          </LightCard>
+        </RowBetween>
+        <RowBetween>
+          <LightCard width="48%" padding="8px">
+            <AutoColumn gap="4px" justify="center">
+              <TYPE.main fontSize="12px">
+                <Trans>Current Bond price</Trans>
               </TYPE.main>
+              {baseCurrency && quoteCurrency && (
+                <>
+                  <TYPE.mediumHeader>{`${
+                    bondPrice ? bondPrice.divide(Math.pow(10, quoteCurrency.decimals)).toSignificant(6) : '0.0'
+                  } `}</TYPE.mediumHeader>
+                  <TYPE.main textAlign="center" fontSize="12px">
+                    <Trans>
+                      {quoteCurrency.symbol} per {baseCurrency.symbol}
+                    </Trans>
+                  </TYPE.main>
+                </>
+              )}
             </AutoColumn>
           </LightCard>
           <LightCard width="48%" padding="8px">
             <AutoColumn gap="4px" justify="center">
               <TYPE.main fontSize="12px">
-                <Trans>Bond price</Trans>
+                <Trans>Current Market price</Trans>
               </TYPE.main>
-              {bondPrice && marketPrice && baseCurrency && quoteCurrency && (
+              {baseCurrency && quoteCurrency && (
                 <>
-                  <TYPE.mediumHeader>{`${bondPrice
-                    .divide(Math.pow(10, quoteCurrency.decimals))
-                    .toSignificant(6)} `}</TYPE.mediumHeader>
+                  <TYPE.mediumHeader>{`${
+                    marketPrice
+                      ? marketPrice
+                          .divide(Math.pow(10, baseCurrency.decimals))
+                          .divide(Math.pow(10, quoteCurrency.decimals))
+                          .toSignificant(6)
+                      : '0.0'
+                  } `}</TYPE.mediumHeader>
                   <TYPE.main textAlign="center" fontSize="12px">
                     <Trans>
                       {quoteCurrency.symbol} per {baseCurrency.symbol}
