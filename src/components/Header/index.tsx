@@ -197,7 +197,7 @@ export default function Header() {
         <UniBalanceContent setShowUniBalanceModal={setShowUniBalanceModal} />
       </Modal>
       <Title href=".">
-        <HeaderLogo darkMode={darkMode}>Robusta</HeaderLogo>
+        <HeaderLogo darkMode={darkMode}>Cappuccino</HeaderLogo>
       </Title>
       <HeaderLinks className="header-links">
         <StyledNavLink id={`market-nav-link`} to={'/market'}>
