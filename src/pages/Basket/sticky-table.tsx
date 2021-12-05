@@ -1,146 +1,178 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/display-name */
 import * as React from 'react'
 import { ThemeContext } from 'styled-components/macro'
-import Paper from '@mui/material/Paper'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import Button from '@mui/material/Button'
 import { darken, lighten } from 'polished'
 import { useDarkModeManager } from 'state/user/hooks'
+import { Maturity } from 'constants/maturity'
+import { DataGrid, GridApi, GridCellValue, GridColDef, GridValueFormatterParams } from '@mui/x-data-grid'
+import { makeStyles } from '@material-ui/core'
+import { useActiveWeb3React } from 'hooks/web3'
+import { useWalletModalToggle } from 'state/application/hooks'
 
-const columns = [
-  { id: 'name', label: 'Name', minWidth: 150 },
-  { id: 'code', label: 'ISO\u00a0Code', minWidth: 100 },
-  {
-    id: 'population',
-    label: 'Population',
-    minWidth: 150,
-    align: 'right',
-    format: (value: any) => value.toLocaleString('en-US'),
-  },
-  {
-    id: 'size',
-    label: 'Size\u00a0(km\u00b2)',
-    minWidth: 150,
-    align: 'right',
-    format: (value: any) => value.toLocaleString('en-US'),
-  },
-  {
-    id: 'density',
-    label: 'Density',
-    minWidth: 150,
-    align: 'right',
-    format: (value: any) => value.toFixed(2),
-  },
-]
-
-function createData(name: string, code: string, population: number, size: number) {
-  const density = population / size
-  return { name, code, population, size, density }
+function createData(
+  id: number,
+  optionType: string,
+  currencyA: string,
+  currencyB: string,
+  liquidity: number,
+  bcv: number,
+  strike: number,
+  maturity: number
+) {
+  const pair = currencyA + '/' + currencyB
+  return {
+    id: id,
+    optionType: optionType,
+    pair: pair,
+    liquidity: liquidity,
+    bcv: bcv,
+    strike: strike,
+    maturity: maturity,
+  }
 }
 
-const rows = [
-  createData('India', 'IN', 1324171354, 3287263),
-  createData('China', 'CN', 1403500365, 9596961),
-  createData('Italy', 'IT', 60483973, 301340),
-  createData('United States', 'US', 327167434, 9833520),
-  createData('Canada', 'CA', 37602103, 9984670),
-  createData('Australia', 'AU', 25475400, 7692024),
-  createData('Germany', 'DE', 83019200, 357578),
-  createData('Ireland', 'IE', 4857000, 70273),
-  createData('Mexico', 'MX', 126577691, 1972550),
-  createData('Japan', 'JP', 126317000, 377973),
-  createData('France', 'FR', 67022000, 640679),
-  createData('United Kingdom', 'GB', 67545757, 242495),
-  createData('Russia', 'RU', 146793744, 17098246),
-  createData('Nigeria', 'NG', 200962417, 923768),
-  createData('Brazil', 'BR', 210147125, 8515767),
-]
+function formatNumber(params: GridValueFormatterParams) {
+  if (params === undefined || params.value === undefined) {
+    return ''
+  }
+  return +parseFloat(params!.value!.toString())
+    .toFixed(3)
+    .toString()
+    .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+}
 
-export default function StickyHeadTable() {
+interface StickyHeadTableProps {
+  onUserClick?: (row: any) => void
+}
+
+export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   const theme = useContext(ThemeContext)
+  const [rows, setRows] = useState<any[]>([])
+  const { account, chainId, library } = useActiveWeb3React()
+  const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
   const [darkMode, toggleDarkMode] = useDarkModeManager()
-  const buyBtn = (
-    <Button
-      variant="outlined"
-      color="success"
-      size="small"
-      style={{
-        fontFamily: "'Inter var', sans-serif",
-      }}
-    >
-      Exercise
-    </Button>
-  )
+  let row = 0
+
+  const columns: GridColDef[] = [
+    { field: 'optionType', headerName: 'Type' },
+    { field: 'pair', headerName: 'Pair' },
+    {
+      field: 'liquidity',
+      headerName: 'Liquidity (OHM)',
+      align: 'right',
+      flex: 1,
+      valueFormatter: formatNumber,
+    },
+    {
+      field: 'bcv',
+      headerName: 'BCV value',
+      align: 'right',
+      flex: 1,
+      valueFormatter: formatNumber,
+    },
+    {
+      field: 'strike',
+      headerName: 'Strike (DAI)',
+      align: 'right',
+      flex: 1,
+      valueFormatter: formatNumber,
+    },
+    {
+      field: 'maturity',
+      headerName: 'Maturity',
+      align: 'right',
+      flex: 1,
+    },
+    {
+      field: 'action',
+      headerName: 'Action',
+      headerAlign: 'center',
+      align: 'center',
+      flex: 1,
+      renderCell: (params) => {
+        const onClick = (e: any) => {
+          e.stopPropagation() // don't select this row after clicking
+
+          const api: GridApi = params.api
+          const thisRow: Record<string, GridCellValue> = {}
+
+          api
+            .getAllColumns()
+            .filter((c) => c.field !== '__check__' && !!c)
+            .forEach((c) => (thisRow[c.field] = params.getValue(params.id, c.field)))
+
+          if (onUserClick != undefined) {
+            onUserClick(thisRow)
+          }
+        }
+        return !account ? (
+          <Button
+            variant="contained"
+            size="small"
+            style={{
+              fontFamily: "'Inter var', sans-serif",
+            }}
+            onClick={toggleWalletModal}
+          >
+            Connect
+          </Button>
+        ) : (
+          <Button
+            variant="outlined"
+            color="success"
+            size="small"
+            style={{
+              fontFamily: "'Inter var', sans-serif",
+            }}
+            onClick={onClick}
+          >
+            Exercise
+          </Button>
+        )
+      },
+    },
+  ]
+
+  useEffect(() => {
+    setRows([
+      createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, Maturity.FIVE_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, Maturity.FIVE_DAYS),
+      createData(row++, 'PUT', 'OHM', 'DAI', 130, 1.05, 690, Maturity.FIVE_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, Maturity.FIVE_DAYS),
+      createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, Maturity.SEVEN_DAYS),
+    ])
+  }, [])
+
+  const useStyle = makeStyles({
+    grid: {
+      color: theme.text1,
+      border: 'none',
+      '& .MuiTablePagination-root': {
+        color: theme.text1,
+      },
+      '& .MuiDataGrid-overlay': {
+        backgroundColor: theme.bg1,
+      },
+      '& .MuiDataGrid-columnSeparator': {
+        visibility: 'hidden',
+      },
+      '& .MuiDataGrid-cell': {
+        borderBottomColor: darkMode ? darken(0.1, theme.text3) : lighten(0.4, theme.text3),
+      },
+      '& .MuiDataGrid-columnHeaders': {
+        borderBottomColor: darkMode ? darken(0.1, theme.text3) : lighten(0.4, theme.text3),
+      },
+    },
+  })
+
+  const classes = useStyle()
+
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden', backgroundColor: 'transparent' }}>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  style={{
-                    minWidth: column.minWidth,
-                    fontFamily: "'Inter var', sans-serif",
-                    color: theme.text2,
-                    backgroundColor: theme.bg0,
-                    borderBottomColor: darkMode ? darken(0.1, theme.text3) : lighten(0.4, theme.text3),
-                  }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-              <TableCell
-                style={{
-                  minWidth: '30px',
-                  fontFamily: "'Inter var', sans-serif",
-                  color: theme.text2,
-                  backgroundColor: theme.bg0,
-                  borderBottomColor: darkMode ? darken(0.1, theme.text3) : lighten(0.4, theme.text3),
-                }}
-              >
-                Action
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => {
-              return (
-                <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                  {columns.map((column) => {
-                    const value = (row as any)[column.id]
-                    return (
-                      <TableCell
-                        key={column.id}
-                        style={{
-                          fontFamily: "'Inter var', sans-serif",
-                          color: theme.text2,
-                          borderBottomColor: darkMode ? darken(0.1, theme.text3) : lighten(0.4, theme.text3),
-                        }}
-                      >
-                        {column.format && typeof value === 'number' ? column.format(value) : value}
-                      </TableCell>
-                    )
-                  })}
-                  <TableCell
-                    style={{
-                      borderBottomColor: darkMode ? darken(0.1, theme.text3) : lighten(0.4, theme.text3),
-                    }}
-                  >
-                    {buyBtn}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
+    <div style={{ width: '1024px', backgroundColor: 'transparent', height: '500px' }}>
+      <DataGrid rows={rows} columns={columns} className={classes.grid} />
+    </div>
   )
 }

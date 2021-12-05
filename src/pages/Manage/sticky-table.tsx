@@ -9,6 +9,8 @@ import { useDarkModeManager } from 'state/user/hooks'
 import { Maturity } from 'constants/maturity'
 import { DataGrid, GridApi, GridCellValue, GridColDef, GridValueFormatterParams } from '@mui/x-data-grid'
 import { makeStyles } from '@material-ui/core'
+import { useActiveWeb3React } from 'hooks/web3'
+import { useWalletModalToggle } from 'state/application/hooks'
 
 function createData(
   id: number,
@@ -49,6 +51,8 @@ interface StickyHeadTableProps {
 export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   const theme = useContext(ThemeContext)
   const [rows, setRows] = useState<any[]>([])
+  const { account, chainId, library } = useActiveWeb3React()
+  const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   let row = 0
 
@@ -104,7 +108,18 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
             onUserClick(thisRow)
           }
         }
-        return (
+        return !account ? (
+          <Button
+            variant="contained"
+            size="small"
+            style={{
+              fontFamily: "'Inter var', sans-serif",
+            }}
+            onClick={toggleWalletModal}
+          >
+            Connect
+          </Button>
+        ) : (
           <Button
             variant="outlined"
             color="error"

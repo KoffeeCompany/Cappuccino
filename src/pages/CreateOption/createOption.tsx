@@ -1,18 +1,22 @@
 /* eslint-disable prefer-const */
 import { Text } from 'rebass'
 import { useState, useCallback, useContext, ReactNode, useEffect } from 'react'
-import { Position } from '@uniswap/v3-sdk'
 import { LightCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import { TYPE } from 'theme'
 import { RowBetween, RowFixed } from 'components/Row'
 import CurrencyLogo from 'components/CurrencyLogo'
 import { unwrappedToken } from 'utils/unwrappedToken'
+import { Break } from 'components/earn/styled'
 import { Trans } from '@lingui/macro'
 import { Currency, Token } from '@uniswap/sdk-core'
+import RateToggle from 'components/RateToggle'
 import DoubleCurrencyLogo from 'components/DoubleLogo'
+import RangeBadge from 'components/Badge/RangeBadge'
 import { ThemeContext } from 'styled-components/macro'
+import JSBI from 'jsbi'
 import { Bound, Field } from 'state/mint/v3/actions'
+import { formatTickPrice } from 'utils/formatTickPrice'
 import { CurrencyAmount, Price } from '@uniswap/sdk-core'
 import { Maturity } from 'constants/maturity'
 import { OptionType } from 'state/data/generated'
@@ -20,14 +24,14 @@ import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { useOlympusDerivedMintInfo, useOlympusMintActionHandlers, useOlympusMintState } from 'state/mint/v3/hooks'
 import { useUSDCValue } from 'hooks/useUSDCPrice'
 import { Dots, DynamicSection, MediumOnly } from './styled'
-import { useActiveWeb3React } from 'hooks/web3'
-import { useWalletModalToggle } from 'state/application/hooks'
 import { ButtonError, ButtonLight, ButtonPrimary } from 'components/Button'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
-import { CAPPUCCINO_CONTRACT_ADDRESSES } from 'constants/addresses'
 import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
+import { CAPPUCCINO_CONTRACT_ADDRESSES } from 'constants/addresses'
+import { useActiveWeb3React } from 'hooks/web3'
+import { useWalletModalToggle } from 'state/application/hooks'
 
-export const SetNotional = ({
+export const AddLiquidity = ({
   token0,
   token1,
   title,
@@ -61,7 +65,13 @@ export const SetNotional = ({
   const quoteCurrency = baseCurrency && tmpQuoteCurrency && token0.equals(token1) ? undefined : tmpQuoteCurrency
 
   // mint state
-  const { independentField, bcvValue, strikeValue, liquidityValue, notionalValue } = useOlympusMintState()
+  const { independentField, bcvValue, strikeValue, liquidityValue } = useOlympusMintState()
+
+  useEffect(() => {
+    onStrikeInput(strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6))
+    onLiquidityInput(liquidity.multiply(Math.pow(10, liquidity.currency.decimals)).toSignificant(6))
+    onBcvInput(bcv.toString())
+  }, [liquidity, bcv, strike])
 
   const {
     dependentField,
@@ -70,40 +80,34 @@ export const SetNotional = ({
     parsedAmounts,
     strikeAmounts,
     liquidityAmounts,
-    notionalAmounts,
     bondPrice,
     marketPrice,
     errorMessage,
     invertPrice,
   } = useOlympusDerivedMintInfo(baseCurrency ?? undefined, quoteCurrency ?? undefined, baseCurrency ?? undefined)
-  const { onStrikeInput, onBcvInput, onLiquidityInput, onNotionalInput } = useOlympusMintActionHandlers()
+  const { onBcvInput, onStrikeInput, onLiquidityInput } = useOlympusMintActionHandlers()
 
-  useEffect(() => {
-    onStrikeInput(strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6))
-    onLiquidityInput(liquidity.multiply(Math.pow(10, liquidity.currency.decimals)).toSignificant(6))
-    onBcvInput(bcv.toString())
-  }, [liquidity, bcv, strike])
-
-  const formattedNotionalAmounts = {
-    [independentField]: notionalValue,
-    [dependentField]: notionalValue,
+  const formattedLiquidityAmounts = {
+    [independentField]: liquidityValue,
+    [dependentField]: liquidityValue,
   }
 
-  const usdcNotionalValues = {
-    [Field.CURRENCY_A]: useUSDCValue(notionalAmounts[Field.CURRENCY_A]),
-    [Field.CURRENCY_B]: useUSDCValue(notionalAmounts[Field.CURRENCY_B]),
+  const usdcLiquidityValues = {
+    [Field.CURRENCY_A]: useUSDCValue(liquidityAmounts[Field.CURRENCY_A]),
+    [Field.CURRENCY_B]: useUSDCValue(liquidityAmounts[Field.CURRENCY_B]),
   }
 
   const argentWalletContract = useArgentWalletContract()
 
-  const showApprovalB = true
-  const [approvalB, approveBCallback] = useApproveCallback(
-    argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_B],
+  const showApprovalA = true
+  const [approvalA, approveACallback] = useApproveCallback(
+    argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_A],
     chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
   )
-  const isValid = !errorMessage && notionalValue != ''
 
-  async function onBuyOption() {
+  const isValid = !errorMessage && liquidityValue != ''
+
+  async function onUpdateLiquidity() {
     //
   }
 
@@ -114,21 +118,21 @@ export const SetNotional = ({
       </ButtonLight>
     ) : (
       <AutoColumn gap={'md'}>
-        {(approvalB === ApprovalState.NOT_APPROVED || approvalB === ApprovalState.PENDING) && isValid && (
+        {(approvalA === ApprovalState.NOT_APPROVED || approvalA === ApprovalState.PENDING) && isValid && (
           <RowBetween>
-            {showApprovalB && (
+            {showApprovalA && (
               <ButtonPrimary
-                onClick={approveBCallback}
-                disabled={approvalB === ApprovalState.PENDING}
+                onClick={approveACallback}
+                disabled={approvalA === ApprovalState.PENDING}
                 width={'100%'}
                 $borderRadius="4px"
               >
-                {approvalB === ApprovalState.PENDING ? (
+                {approvalA === ApprovalState.PENDING ? (
                   <Dots>
-                    <Trans>Approving {currencies[Field.CURRENCY_B]?.symbol}</Trans>
+                    <Trans>Approving {currencies[Field.CURRENCY_A]?.symbol}</Trans>
                   </Dots>
                 ) : (
-                  <Trans>Approve {currencies[Field.CURRENCY_B]?.symbol}</Trans>
+                  <Trans>Approve {currencies[Field.CURRENCY_A]?.symbol}</Trans>
                 )}
               </ButtonPrimary>
             )}
@@ -137,12 +141,12 @@ export const SetNotional = ({
         <ButtonError
           style={{ borderRadius: '4px' }}
           onClick={() => {
-            onBuyOption()
+            onUpdateLiquidity()
           }}
-          disabled={!isValid || (!argentWalletContract && approvalB !== ApprovalState.APPROVED)}
-          error={!isValid && !!notionalAmounts[Field.CURRENCY_B]}
+          disabled={!isValid || (!argentWalletContract && approvalA !== ApprovalState.APPROVED)}
+          error={!isValid && !!liquidityAmounts[Field.CURRENCY_A]}
         >
-          <Text fontWeight={500}>{errorMessage ? errorMessage : <Trans>{`Buy ${optionType}`}</Trans>}</Text>
+          <Text fontWeight={500}>{errorMessage ? errorMessage : <Trans>{`Update liquidity`}</Trans>}</Text>
         </ButtonError>
       </AutoColumn>
     )
@@ -165,19 +169,19 @@ export const SetNotional = ({
       <DynamicSection>
         <AutoColumn gap="md">
           <TYPE.label>
-            <Trans>Notional</Trans>
+            <Trans>Liquidity</Trans>
           </TYPE.label>
 
           <CurrencyInputPanel
-            value={formattedNotionalAmounts[Field.CURRENCY_B]}
-            onUserInput={onNotionalInput}
+            value={formattedLiquidityAmounts[Field.CURRENCY_A]}
+            onUserInput={onLiquidityInput}
             onMax={() => {
               //
             }}
             showMaxButton={false}
-            currency={currencies[Field.CURRENCY_B]}
-            id="notional-input-tokenaB"
-            fiatValue={usdcNotionalValues[Field.CURRENCY_B]}
+            currency={currencies[Field.CURRENCY_A]}
+            id="liquidity-input-tokena"
+            fiatValue={usdcLiquidityValues[Field.CURRENCY_A]}
             hideBalance={true}
             locked={false}
           />
@@ -185,7 +189,7 @@ export const SetNotional = ({
       </DynamicSection>
       <AutoColumn gap="md">
         <RowBetween>
-          <TYPE.main>Strike / Liquidity</TYPE.main>
+          <TYPE.main>Strike</TYPE.main>
         </RowBetween>
 
         <RowBetween>
@@ -199,17 +203,6 @@ export const SetNotional = ({
                 <RowFixed>
                   <TYPE.label mr="8px">
                     {strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6)}
-                  </TYPE.label>
-                </RowFixed>
-              </RowBetween>
-              <RowBetween>
-                <RowFixed>
-                  <CurrencyLogo currency={liquidity.currency} />
-                  <TYPE.label ml="8px">{liquidity.currency?.symbol}</TYPE.label>
-                </RowFixed>
-                <RowFixed>
-                  <TYPE.label mr="8px">
-                    {liquidity.multiply(Math.pow(10, liquidity.currency.decimals)).toSignificant(6)}
                   </TYPE.label>
                 </RowFixed>
               </RowBetween>

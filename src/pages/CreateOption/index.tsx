@@ -1,5 +1,6 @@
 import { Text } from 'rebass'
 import { Currency, Percent } from '@uniswap/sdk-core'
+import { CurrencyAmount, Price } from '@uniswap/sdk-core'
 import { Maturity } from 'constants/maturity'
 import { useCurrency } from 'hooks/Tokens'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
@@ -48,6 +49,8 @@ import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
 import { OptionType } from 'state/data/generated'
 import { DAI, OHM } from 'constants/tokens'
+import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
+import { Review } from './Review'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -140,15 +143,10 @@ export default function CreateOption({
 
   const argentWalletContract = useArgentWalletContract()
   const showApprovalA = true
-  const showApprovalB = true
 
   // check whether the user has approved the router on the tokens
   const [approvalA, approveACallback] = useApproveCallback(
     argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_A],
-    chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
-  )
-  const [approvalB, approveBCallback] = useApproveCallback(
-    argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_B],
     chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
   )
 
@@ -180,6 +178,21 @@ export default function CreateOption({
     onLiquidityInput('')
     history.push(`/create/${OHM.address}/${DAI.address}`)
   }, [history, onBcvInput, onStrikeInput, onLiquidityInput])
+
+  useEffect(() => {
+    onBcvInput('')
+    onStrikeInput('')
+    onLiquidityInput('')
+  }, [])
+
+  const handleDismissConfirmation = useCallback(() => {
+    setShowConfirm(false)
+    // if there was a tx hash, we want to clear the input
+    if (txHash) {
+      history.push(`/create/${OHM.address}/${DAI.address}`)
+    }
+    setTxHash('')
+  }, [history, txHash])
 
   const optionAddresses: string | undefined = useMemo(() => {
     if (chainId) {
@@ -256,54 +269,32 @@ export default function CreateOption({
       </ButtonLight>
     ) : (
       <AutoColumn gap={'md'}>
-        {(approvalA === ApprovalState.NOT_APPROVED ||
-          approvalA === ApprovalState.PENDING ||
-          approvalB === ApprovalState.NOT_APPROVED ||
-          approvalB === ApprovalState.PENDING) &&
-          isValid && (
-            <RowBetween>
-              {showApprovalA && (
-                <ButtonPrimary
-                  onClick={approveACallback}
-                  disabled={approvalA === ApprovalState.PENDING}
-                  width={showApprovalB ? '48%' : '100%'}
-                >
-                  {approvalA === ApprovalState.PENDING ? (
-                    <Dots>
-                      <Trans>Approving {currencies[Field.CURRENCY_A]?.symbol}</Trans>
-                    </Dots>
-                  ) : (
-                    <Trans>Approve {currencies[Field.CURRENCY_A]?.symbol}</Trans>
-                  )}
-                </ButtonPrimary>
-              )}
-              {showApprovalB && (
-                <ButtonPrimary
-                  onClick={approveBCallback}
-                  disabled={approvalB === ApprovalState.PENDING}
-                  width={showApprovalA ? '48%' : '100%'}
-                >
-                  {approvalB === ApprovalState.PENDING ? (
-                    <Dots>
-                      <Trans>Approving {currencies[Field.CURRENCY_B]?.symbol}</Trans>
-                    </Dots>
-                  ) : (
-                    <Trans>Approve {currencies[Field.CURRENCY_B]?.symbol}</Trans>
-                  )}
-                </ButtonPrimary>
-              )}
-            </RowBetween>
-          )}
+        {(approvalA === ApprovalState.NOT_APPROVED || approvalA === ApprovalState.PENDING) && isValid && (
+          <RowBetween>
+            {showApprovalA && (
+              <ButtonPrimary
+                onClick={approveACallback}
+                disabled={approvalA === ApprovalState.PENDING}
+                width={'100%'}
+                $borderRadius="4px"
+              >
+                {approvalA === ApprovalState.PENDING ? (
+                  <Dots>
+                    <Trans>Approving {currencies[Field.CURRENCY_A]?.symbol}</Trans>
+                  </Dots>
+                ) : (
+                  <Trans>Approve {currencies[Field.CURRENCY_A]?.symbol}</Trans>
+                )}
+              </ButtonPrimary>
+            )}
+          </RowBetween>
+        )}
         <ButtonError
           style={{ borderRadius: '4px' }}
           onClick={() => {
             expertMode ? onCreateOption() : setShowConfirm(true)
           }}
-          disabled={
-            !isValid ||
-            (!argentWalletContract && approvalA !== ApprovalState.APPROVED) ||
-            (!argentWalletContract && approvalB !== ApprovalState.APPROVED)
-          }
+          disabled={!isValid || (!argentWalletContract && approvalA !== ApprovalState.APPROVED)}
           error={!isValid && !!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]}
         >
           <Text fontWeight={500}>{errorMessage ? errorMessage : <Trans>Preview</Trans>}</Text>
@@ -313,6 +304,38 @@ export default function CreateOption({
 
   return (
     <>
+      <TransactionConfirmationModal
+        isOpen={showConfirm}
+        onDismiss={handleDismissConfirmation}
+        attemptingTxn={attemptingTxn}
+        hash={txHash}
+        content={() => (
+          <ConfirmationModalContent
+            title={t`Create Option`}
+            onDismiss={handleDismissConfirmation}
+            topContent={() => (
+              <Review
+                token0={baseCurrency ? baseCurrency.wrapped : OHM.wrapped}
+                token1={quoteCurrency ? quoteCurrency.wrapped : DAI.wrapped}
+                liquidity={
+                  liquidityAmounts[Field.CURRENCY_A] != undefined
+                    ? liquidityAmounts[Field.CURRENCY_A]!
+                    : CurrencyAmount.fromRawAmount(baseCurrency ? baseCurrency : OHM, 0)
+                }
+                strike={
+                  strikeAmounts[Field.CURRENCY_B] != undefined
+                    ? strikeAmounts[Field.CURRENCY_B]!
+                    : CurrencyAmount.fromRawAmount(quoteCurrency ? quoteCurrency : DAI, 0)
+                }
+                bcv={bcvValue != '' ? parseFloat(bcvValue) : 0}
+                maturity={maturity}
+              />
+            )}
+            bottomContent={undefined}
+          />
+        )}
+        pendingText={undefined}
+      />
       <ScrollablePage>
         <PageWrapper wide={false}>
           <AddRemoveTabs
