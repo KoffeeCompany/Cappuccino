@@ -7,7 +7,7 @@ import Button from '@mui/material/Button'
 import { darken, lighten } from 'polished'
 import { useDarkModeManager } from 'state/user/hooks'
 import { Maturity } from 'constants/maturity'
-import { DataGrid, GridApi, GridCellValue, GridColDef, GridValueFormatterParams } from '@mui/x-data-grid'
+import { DataGrid, GridApi, GridCellValue, GridColDef, GridRowId, GridValueFormatterParams } from '@mui/x-data-grid'
 import { makeStyles } from '@material-ui/core'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useWalletModalToggle } from 'state/application/hooks'
@@ -44,6 +44,24 @@ function formatNumber(params: GridValueFormatterParams) {
     .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
+function pad(n: number) {
+  return n < 10 ? '0' + n : n
+}
+
+function timerDisplay(seconds: number) {
+  if (seconds <= 0) {
+    return 'Expiry'
+  } else {
+    const days = Math.floor(seconds / 24 / 60 / 60)
+    const hoursLeft = Math.floor(seconds - days * 86400)
+    const hours = Math.floor(hoursLeft / 3600)
+    const minutesLeft = Math.floor(hoursLeft - hours * 3600)
+    const minutes = Math.floor(minutesLeft / 60)
+    const remainingSeconds = seconds % 60
+    return pad(days) + ':' + pad(hours) + ':' + pad(minutes) + ':' + pad(Number(remainingSeconds.toFixed(0)))
+  }
+}
+
 interface StickyHeadTableProps {
   onUserClick?: (row: any) => void
 }
@@ -55,6 +73,30 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   let row = 0
+
+  const maturityCountdownTimer = (id: GridRowId, maturity: number) => {
+    const timestamp = Date.now() / 1000
+    const remaing = maturity - Number(timestamp.toFixed())
+    if (remaing > 0) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      React.useEffect(() => {
+        const timer = setInterval(() => {
+          if (remaing <= 0) {
+            clearInterval(timer)
+          }
+          setRows((prevRows) => {
+            const rowToUpdateIndex = id.valueOf()
+            return prevRows.map((row, index) => (index === rowToUpdateIndex ? { ...row, maturity: maturity - 1 } : row))
+          })
+        }, 1000)
+        return () => {
+          clearInterval(timer)
+        }
+      }, [])
+    }
+
+    return <div>{timerDisplay(remaing)}</div>
+  }
 
   const columns: GridColDef[] = [
     { field: 'optionType', headerName: 'Type' },
@@ -85,6 +127,10 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
       headerName: 'Maturity',
       align: 'right',
       flex: 1,
+      renderCell: (params) => {
+        const maturity = params.getValue(params.id, 'maturity')
+        return maturityCountdownTimer(params.id, Number(maturity))
+      },
     },
     {
       field: 'action',
@@ -137,12 +183,13 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   ]
 
   useEffect(() => {
+    const timestamp = Date.now() / 1000
     setRows([
-      createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, Maturity.FIVE_DAYS),
-      createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, Maturity.FIVE_DAYS),
-      createData(row++, 'PUT', 'OHM', 'DAI', 130, 1.05, 690, Maturity.FIVE_DAYS),
-      createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, Maturity.FIVE_DAYS),
-      createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, Maturity.SEVEN_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, Number(timestamp) + Maturity.FIVE_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, Number(timestamp) + Maturity.FIVE_DAYS),
+      createData(row++, 'PUT', 'OHM', 'DAI', 130, 1.05, 690, Number(timestamp) + Maturity.FIVE_DAYS),
+      createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, Number(timestamp) + Maturity.FIVE_DAYS),
+      createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, Number(timestamp) + Maturity.SEVEN_DAYS),
     ])
   }, [])
 
