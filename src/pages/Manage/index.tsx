@@ -15,7 +15,7 @@ import { ButtonPrimary } from 'components/Button'
 import { Link } from 'react-router-dom'
 import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
 import { Review } from './Review'
-import { DAI, OHM } from 'constants/tokens'
+import { DAI_GOERLI, OHM_GOERLI } from 'constants/tokens'
 import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-core'
 import { unwrappedToken } from 'utils/unwrappedToken'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -37,15 +37,17 @@ export default function Manage(history: any) {
     setTxHash('')
   }, [history, txHash])
 
-  const token0 = OHM
+  const token0 = OHM_GOERLI
   const currencyA = unwrappedToken(token0)
-  const token1 = DAI
+  const token1 = DAI_GOERLI
   const currencyB = unwrappedToken(token1)
   const [liquidity, setLiquidity] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyA, 0))
   const [strike, setStrike] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyB, 0))
   const [bcv, setBcv] = useState<number>(0)
   const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
-  const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
+  //const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
+  const bondPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '529010000000000000000')
+  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '542720000000000000000000000000')
 
   async function onUpdateLiquidityOption() {
     //
@@ -164,7 +166,7 @@ export default function Manage(history: any) {
             >
               <ButtonPrimary
                 as={Link}
-                to={`/create/${OHM.address}/${DAI.address}`}
+                to={`/create/${OHM_GOERLI.address}/${DAI_GOERLI.address}`}
                 style={{
                   width: 'fit-content',
                   borderRadius: '4px',

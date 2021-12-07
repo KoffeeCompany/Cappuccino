@@ -124,7 +124,7 @@ export const OLYMPUS_OHMDAI_RESERVE_ADDRESSES: AddressMap = constructSameAddress
 )
 
 export const CAPPUCCINO_CONTRACT_ADDRESSES: AddressMap = constructSameAddressMap(
-  '0x34d7d7Aaf50AD4944B70B320aCB24C95fa2def7c',
+  '0xDbF84f29AA880fc3359895c8248CFFcf971c9270',
   [
     SupportedChainId.OPTIMISM,
     SupportedChainId.OPTIMISTIC_KOVAN,

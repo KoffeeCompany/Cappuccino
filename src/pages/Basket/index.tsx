@@ -9,13 +9,13 @@ import { useCallback, useContext, useState } from 'react'
 import Paper from '@mui/material/Paper'
 import Box from '@mui/material/Box'
 import { Trans, t } from '@lingui/macro'
-import { DAI, OHM } from 'constants/tokens'
+import { DAI_GOERLI, OHM_GOERLI } from 'constants/tokens'
 import { Currency, CurrencyAmount, Percent, Token, Price } from '@uniswap/sdk-core'
 import { unwrappedToken } from 'utils/unwrappedToken'
 import { Maturity } from 'constants/maturity'
 import { TYPE } from 'theme'
 import { useGetOhmDaiPrice } from 'state/mint/v3/hooks'
-import { OptionType } from 'state/data/generated'
+import { OptionType } from 'constants/optiontype'
 
 export default function Basket(history: any) {
   const theme = useContext(ThemeContext)
@@ -31,16 +31,18 @@ export default function Basket(history: any) {
     setTxHash('')
   }, [history, txHash])
 
-  const token0 = OHM
+  const token0 = OHM_GOERLI
   const currencyA = unwrappedToken(token0)
-  const token1 = DAI
+  const token1 = DAI_GOERLI
   const currencyB = unwrappedToken(token1)
   const [liquidity, setLiquidity] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyA, 0))
   const [strike, setStrike] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyB, 0))
   const [bcv, setBcv] = useState<number>(0)
   const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Call)
-  const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
+  //const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
+  const bondPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '529010000000000000000')
+  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '542720000000000000000000000000')
 
   return (
     <>

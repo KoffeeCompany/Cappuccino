@@ -5,13 +5,13 @@ import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham-dark.css'
 import { Option, OptionUI } from '../../types/option'
 import { useEffect, useState } from 'react'
-import { CHAIN_SUBGRAPH_URL, queryOption } from 'state/option/slice'
+import { CHAIN_SUBGRAPH_URL } from 'state/option/slice'
 import { useActiveWeb3React } from 'hooks/web3'
-import { OptionType } from 'state/data/generated'
 import { formatUnits } from 'ethers/lib/utils'
 import { format } from 'date-fns'
 import { useAllTokens, useCurrency } from 'hooks/Tokens'
 import { BigNumber, ethers } from 'ethers'
+import { OptionType } from 'constants/optiontype'
 
 interface OptionsGridProps {
   onRowSelect: (row: any) => void
@@ -92,14 +92,14 @@ export default function OptionsGrid({ onRowSelect, optionType }: OptionsGridProp
     if (!subgraphUrl) {
       console.log(`Subgraph queries against ChainId ${chainId} are not supported.`)
     } else {
-      queryOption(subgraphUrl, optionType).then((data) => {
-        const dataUI: OptionUI[] = []
-        data.map((item) => {
-          dataUI.push(toDataUI(item))
-        })
-        setRowData(dataUI)
-        console.log('>>>>>>>data', data)
-      })
+      // queryOption(subgraphUrl, optionType).then((data) => {
+      //   const dataUI: OptionUI[] = []
+      //   data.map((item) => {
+      //     dataUI.push(toDataUI(item))
+      //   })
+      //   setRowData(dataUI)
+      //   console.log('>>>>>>>data', data)
+      // })
     }
   }, [optionType])
 

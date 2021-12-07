@@ -19,7 +19,6 @@ import { Bound, Field } from 'state/mint/v3/actions'
 import { formatTickPrice } from 'utils/formatTickPrice'
 import { CurrencyAmount, Price } from '@uniswap/sdk-core'
 import { Maturity } from 'constants/maturity'
-import { OptionType } from 'state/data/generated'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { useOlympusDerivedMintInfo, useOlympusMintActionHandlers, useOlympusMintState } from 'state/mint/v3/hooks'
 import { useUSDCValue } from 'hooks/useUSDCPrice'
@@ -30,6 +29,7 @@ import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
 import { CAPPUCCINO_CONTRACT_ADDRESSES } from 'constants/addresses'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useWalletModalToggle } from 'state/application/hooks'
+import { OptionType } from 'constants/optiontype'
 
 export const AddLiquidity = ({
   token0,

@@ -1,5 +1,6 @@
+import { OptionType } from 'constants/optiontype'
 import { BigNumber } from 'ethers'
-import { OptionStatus, OptionType } from 'state/data/generated'
+import { OptionStatus } from 'state/data/generated'
 
 export interface Option {
   id: BigNumber

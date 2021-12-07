@@ -3,7 +3,7 @@ import styled from 'styled-components/macro'
 import { Currency, CurrencyAmount, Price, Token } from '@uniswap/sdk-core'
 import { Maturity } from 'constants/maturity'
 import { SetNotional } from './setNotional'
-import { OptionType } from 'state/data/generated'
+import { OptionType } from 'constants/optiontype'
 
 const Wrapper = styled.div`
   padding-top: 12px;

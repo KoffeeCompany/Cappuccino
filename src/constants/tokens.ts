@@ -46,6 +46,23 @@ export const DAI_OPTIMISM = new Token(
   'DAI',
   'Dai stable coin'
 )
+
+export const DAI_GOERLI = new Token(
+  SupportedChainId.GOERLI,
+  '0xdc31Ee1784292379Fbb2964b3B9C4124D8F89C60',
+  18,
+  'DAI',
+  'Dai stable coin'
+)
+
+export const OHM_GOERLI = new Token(
+  SupportedChainId.GOERLI,
+  '0x6dD5840fce6b650Ff72A70957e47c0399F3998D0',
+  9,
+  'OHM',
+  'Olympus'
+)
+
 export const USDT = new Token(
   SupportedChainId.MAINNET,
   '0xdAC17F958D2ee523a2206206994597C13D831ec7',

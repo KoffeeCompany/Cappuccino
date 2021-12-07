@@ -19,7 +19,6 @@ import { Bound, Field } from 'state/mint/v3/actions'
 import { formatTickPrice } from 'utils/formatTickPrice'
 import { CurrencyAmount, Price } from '@uniswap/sdk-core'
 import { Maturity } from 'constants/maturity'
-import { OptionType } from 'state/data/generated'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { useOlympusDerivedMintInfo, useOlympusMintActionHandlers, useOlympusMintState } from 'state/mint/v3/hooks'
 import { useUSDCValue } from 'hooks/useUSDCPrice'
@@ -30,6 +29,7 @@ import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
 import { CAPPUCCINO_CONTRACT_ADDRESSES } from 'constants/addresses'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useWalletModalToggle } from 'state/application/hooks'
+import { OptionType } from 'constants/optiontype'
 
 export const AddLiquidity = ({
   token0,
@@ -68,23 +68,16 @@ export const AddLiquidity = ({
   const { independentField, bcvValue, strikeValue, liquidityValue } = useOlympusMintState()
 
   useEffect(() => {
-    onStrikeInput(strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6))
-    onLiquidityInput(liquidity.multiply(Math.pow(10, liquidity.currency.decimals)).toSignificant(6))
+    onStrikeInput(strike.toSignificant(6))
+    onLiquidityInput(liquidity.toSignificant(6))
     onBcvInput(bcv.toString())
-  }, [liquidity, bcv, strike])
+  }, [])
 
-  const {
-    dependentField,
-    currencies,
-    currencyBalances,
-    parsedAmounts,
-    strikeAmounts,
-    liquidityAmounts,
-    bondPrice,
-    marketPrice,
-    errorMessage,
-    invertPrice,
-  } = useOlympusDerivedMintInfo(baseCurrency ?? undefined, quoteCurrency ?? undefined, baseCurrency ?? undefined)
+  const { dependentField, currencies, liquidityAmounts, bondPrice, marketPrice } = useOlympusDerivedMintInfo(
+    baseCurrency ?? undefined,
+    quoteCurrency ?? undefined,
+    baseCurrency ?? undefined
+  )
   const { onBcvInput, onStrikeInput, onLiquidityInput } = useOlympusMintActionHandlers()
 
   const formattedLiquidityAmounts = {
@@ -96,60 +89,6 @@ export const AddLiquidity = ({
     [Field.CURRENCY_A]: useUSDCValue(liquidityAmounts[Field.CURRENCY_A]),
     [Field.CURRENCY_B]: useUSDCValue(liquidityAmounts[Field.CURRENCY_B]),
   }
-
-  const argentWalletContract = useArgentWalletContract()
-
-  const showApprovalA = true
-  const [approvalA, approveACallback] = useApproveCallback(
-    argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_A],
-    chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
-  )
-
-  const isValid = !errorMessage && liquidityValue != ''
-
-  async function onUpdateLiquidity() {
-    //
-  }
-
-  const Buttons = () =>
-    !account ? (
-      <ButtonLight onClick={toggleWalletModal} $borderRadius="4px" padding={'12px'}>
-        <Trans>Connect to a wallet</Trans>
-      </ButtonLight>
-    ) : (
-      <AutoColumn gap={'md'}>
-        {(approvalA === ApprovalState.NOT_APPROVED || approvalA === ApprovalState.PENDING) && isValid && (
-          <RowBetween>
-            {showApprovalA && (
-              <ButtonPrimary
-                onClick={approveACallback}
-                disabled={approvalA === ApprovalState.PENDING}
-                width={'100%'}
-                $borderRadius="4px"
-              >
-                {approvalA === ApprovalState.PENDING ? (
-                  <Dots>
-                    <Trans>Approving {currencies[Field.CURRENCY_A]?.symbol}</Trans>
-                  </Dots>
-                ) : (
-                  <Trans>Approve {currencies[Field.CURRENCY_A]?.symbol}</Trans>
-                )}
-              </ButtonPrimary>
-            )}
-          </RowBetween>
-        )}
-        <ButtonError
-          style={{ borderRadius: '4px' }}
-          onClick={() => {
-            onUpdateLiquidity()
-          }}
-          disabled={!isValid || (!argentWalletContract && approvalA !== ApprovalState.APPROVED)}
-          error={!isValid && !!liquidityAmounts[Field.CURRENCY_A]}
-        >
-          <Text fontWeight={500}>{errorMessage ? errorMessage : <Trans>{`Update liquidity`}</Trans>}</Text>
-        </ButtonError>
-      </AutoColumn>
-    )
 
   return (
     <AutoColumn gap="md" style={{ marginTop: '0.5rem' }}>
@@ -201,9 +140,7 @@ export const AddLiquidity = ({
                   <TYPE.label ml="8px">{strike.currency?.symbol}</TYPE.label>
                 </RowFixed>
                 <RowFixed>
-                  <TYPE.label mr="8px">
-                    {strike.multiply(Math.pow(10, strike.currency.decimals)).toSignificant(6)}
-                  </TYPE.label>
+                  <TYPE.label mr="8px">{strike.toSignificant(6)}</TYPE.label>
                 </RowFixed>
               </RowBetween>
             </AutoColumn>
@@ -286,9 +223,6 @@ export const AddLiquidity = ({
           </LightCard>
         </RowBetween>
       </AutoColumn>
-      <MediumOnly style={{ marginTop: '10px' }}>
-        <Buttons />
-      </MediumOnly>
     </AutoColumn>
   )
 }

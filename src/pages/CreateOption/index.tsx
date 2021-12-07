@@ -27,7 +27,7 @@ import {
 } from './styled'
 import ReactGA from 'react-ga'
 import { CAPPUCCINO_CONTRACT_ADDRESSES, OPTION_ADDRESSES, RESOLVER_ADDRESSES } from 'constants/addresses'
-import { useOptionContract } from 'hooks/useContract'
+import { useOlympusOptionContract, useOptionContract } from 'hooks/useContract'
 import Row, { RowBetween, RowFixed, AutoRow } from '../../components/Row'
 import {
   ButtonError,
@@ -47,10 +47,15 @@ import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter
 import { useIsSwapUnsupported } from 'hooks/useIsSwapUnsupported'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
-import { OptionType } from 'state/data/generated'
-import { DAI, OHM } from 'constants/tokens'
+import { DAI_GOERLI, OHM_GOERLI } from 'constants/tokens'
 import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
 import { Review } from './Review'
+import { BigNumber } from 'ethers'
+import { TransactionResponse } from '@ethersproject/providers'
+import { useSetMaturityTimestamp } from './functions'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { parseUnits } from 'ethers/lib/utils'
+import { OptionType } from 'constants/optiontype'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 
@@ -69,6 +74,7 @@ export default function CreateOption({
   const { account, chainId, library } = useActiveWeb3React()
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
   const expertMode = useIsExpertMode()
+  const addTransaction = useTransactionAdder()
 
   // maturity from url
   const maturity: Maturity =
@@ -110,9 +116,6 @@ export default function CreateOption({
   // modal and loading
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
   const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
-
-  // capital efficiency warning
-  const [showCapitalEfficiencyWarning, setShowCapitalEfficiencyWarning] = useState(false)
 
   // txn values
   const deadline = useTransactionDeadline() // custom from users settings
@@ -176,7 +179,7 @@ export default function CreateOption({
     onBcvInput('')
     onStrikeInput('')
     onLiquidityInput('')
-    history.push(`/create/${OHM.address}/${DAI.address}`)
+    history.push(`/create/${OHM_GOERLI.address}/${DAI_GOERLI.address}`)
   }, [history, onBcvInput, onStrikeInput, onLiquidityInput])
 
   useEffect(() => {
@@ -189,71 +192,65 @@ export default function CreateOption({
     setShowConfirm(false)
     // if there was a tx hash, we want to clear the input
     if (txHash) {
-      history.push(`/create/${OHM.address}/${DAI.address}`)
+      history.push(`/create/${OHM_GOERLI.address}/${DAI_GOERLI.address}`)
     }
     setTxHash('')
   }, [history, txHash])
 
   const optionAddresses: string | undefined = useMemo(() => {
     if (chainId) {
-      if (OPTION_ADDRESSES[chainId]) {
-        return OPTION_ADDRESSES[chainId]
+      if (CAPPUCCINO_CONTRACT_ADDRESSES[chainId]) {
+        return CAPPUCCINO_CONTRACT_ADDRESSES[chainId]
       }
       return undefined
     }
     return undefined
   }, [chainId])
 
-  const resolverAddresses: string | undefined = useMemo(() => {
-    if (chainId) {
-      if (RESOLVER_ADDRESSES[chainId]) {
-        return RESOLVER_ADDRESSES[chainId]
-      }
-      return undefined
-    }
-    return undefined
-  }, [chainId])
-
-  const optionContract = useOptionContract(optionAddresses)
+  const optionContract = useOlympusOptionContract(optionAddresses)
 
   const [attempting, setAttempting] = useState(false)
   const [hash, setHash] = useState<string | undefined>()
 
+  const maturityTimestamp: BigNumber | undefined = useSetMaturityTimestamp(maturity ?? 0)
+  const liquidityToSend = parseUnits(
+    liquidityAmounts[Field.CURRENCY_A] ? liquidityAmounts[Field.CURRENCY_A]!.toSignificant(6) : '0',
+    OHM_GOERLI.decimals
+  )
+  const strikeToSend = parseUnits(
+    strikeAmounts[Field.CURRENCY_B] ? strikeAmounts[Field.CURRENCY_B]!.toSignificant(6) : '0',
+    DAI_GOERLI.decimals
+  )
+  const bcvToSend = parseUnits(bcvValue != '' ? bcvValue : '0', 18)
+
   async function onCreateOption() {
-    //   if (optionContract && pool) {
-    //     setAttempting(true)
-    //     await optionContract
-    //       .createOption(
-    //         {
-    //           pool: Pool.getAddress(pool.token0, pool.token1, pool.fee),
-    //           optionType: isCall ? 0 : 1,
-    //           strike: isCall ? tickLower : tickUpper,
-    //           notional: amountToSend,
-    //           maturity: maturityTimestamp!.toString(),
-    //           maker: account!,
-    //           resolver: resolverAddresses!,
-    //           price: ethers.utils.parseUnits(
-    //             optionValueCurrencyAmount ? optionValueCurrencyAmount.toSignificant(5) : '0',
-    //             optionValueCurrencyAmount?.currency.decimals
-    //           ),
-    //         },
-    //         {
-    //           gasLimit: 3500000,
-    //           value: isEthOrWETH(notionalValueCurrencyAmount?.currency.symbol) ? amountToSend : undefined,
-    //         }
-    //       )
-    //       .then((response: TransactionResponse) => {
-    //         addTransaction(response, {
-    //           summary: t`Create option transaction`,
-    //         })
-    //         setHash(response.hash)
-    //         console.log(response.hash)
-    //       })
-    //       .catch((error: any) => {
-    //         setAttempting(false)
-    //         console.log(error)
-    //       })
-    //   }
+    if (optionContract) {
+      setAttempting(true)
+      await optionContract
+        .createOptionPool(
+          OHM_GOERLI.address,
+          DAI_GOERLI.address,
+          optionType.toString().toLocaleUpperCase(),
+          liquidityToSend,
+          bcvToSend,
+          strikeToSend,
+          maturityTimestamp?.toString(),
+          {
+            gasLimit: 3500000,
+          }
+        )
+        .then((response: TransactionResponse) => {
+          addTransaction(response, {
+            summary: t`Create option transaction`,
+          })
+          setHash(response.hash)
+          console.log(response.hash)
+        })
+        .catch((error: any) => {
+          setAttempting(false)
+          console.log(error)
+        })
+    }
   }
 
   const Buttons = () =>
@@ -315,23 +312,29 @@ export default function CreateOption({
             onDismiss={handleDismissConfirmation}
             topContent={() => (
               <Review
-                token0={baseCurrency ? baseCurrency.wrapped : OHM.wrapped}
-                token1={quoteCurrency ? quoteCurrency.wrapped : DAI.wrapped}
+                token0={baseCurrency ? baseCurrency.wrapped : OHM_GOERLI.wrapped}
+                token1={quoteCurrency ? quoteCurrency.wrapped : DAI_GOERLI.wrapped}
                 liquidity={
                   liquidityAmounts[Field.CURRENCY_A] != undefined
                     ? liquidityAmounts[Field.CURRENCY_A]!
-                    : CurrencyAmount.fromRawAmount(baseCurrency ? baseCurrency : OHM, 0)
+                    : CurrencyAmount.fromRawAmount(baseCurrency ? baseCurrency : OHM_GOERLI, 0)
                 }
                 strike={
                   strikeAmounts[Field.CURRENCY_B] != undefined
                     ? strikeAmounts[Field.CURRENCY_B]!
-                    : CurrencyAmount.fromRawAmount(quoteCurrency ? quoteCurrency : DAI, 0)
+                    : CurrencyAmount.fromRawAmount(quoteCurrency ? quoteCurrency : DAI_GOERLI, 0)
                 }
                 bcv={bcvValue != '' ? parseFloat(bcvValue) : 0}
                 maturity={maturity}
               />
             )}
-            bottomContent={undefined}
+            bottomContent={() => (
+              <ButtonPrimary style={{ marginTop: '1rem' }} onClick={onCreateOption}>
+                <Text fontWeight={500} fontSize={20}>
+                  <Trans>Create</Trans>
+                </Text>
+              </ButtonPrimary>
+            )}
           />
         )}
         pendingText={undefined}

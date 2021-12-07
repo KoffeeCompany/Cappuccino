@@ -15,7 +15,6 @@ import { ThemeContext } from 'styled-components/macro'
 import { Bound, Field } from 'state/mint/v3/actions'
 import { CurrencyAmount, Price } from '@uniswap/sdk-core'
 import { Maturity } from 'constants/maturity'
-import { OptionType } from 'state/data/generated'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { useOlympusDerivedMintInfo, useOlympusMintActionHandlers, useOlympusMintState } from 'state/mint/v3/hooks'
 import { useUSDCValue } from 'hooks/useUSDCPrice'
@@ -26,6 +25,7 @@ import { ButtonError, ButtonLight, ButtonPrimary } from 'components/Button'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { CAPPUCCINO_CONTRACT_ADDRESSES } from 'constants/addresses'
 import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
+import { OptionType } from 'constants/optiontype'
 
 export const SetNotional = ({
   token0,

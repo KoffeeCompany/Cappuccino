@@ -1,8 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { SupportedChainId } from 'constants/chains'
+import { OptionType } from 'constants/optiontype'
 import request, { gql } from 'graphql-request'
-import { OptionType } from 'state/data/generated'
 import { graphqlRequestOptionQuery } from 'state/global/graph'
 import {Option} from '../../types/option'
 

@@ -18,6 +18,9 @@ import {
   DAI_OPTIMISM,
   USDT_OPTIMISM,
   WBTC_OPTIMISM,
+  DAI_GOERLI,
+  OHM,
+  OHM_GOERLI,
 } from './tokens'
 
 type ChainTokenList = {
@@ -38,7 +41,7 @@ export const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
   [SupportedChainId.MAINNET]: [...WETH_ONLY[SupportedChainId.MAINNET], DAI, USDC, USDT, WBTC],
   [SupportedChainId.OPTIMISM]: [...WETH_ONLY[SupportedChainId.OPTIMISM], DAI_OPTIMISM, USDT_OPTIMISM, WBTC_OPTIMISM],
   [SupportedChainId.LOCALHOST]: [...WETH_ONLY[SupportedChainId.LOCALHOST], DAI, USDC, USDT, WBTC],
-  [SupportedChainId.GOERLI]: [...WETH_ONLY[SupportedChainId.GOERLI], DAI, USDC, USDT, WBTC],
+  [SupportedChainId.GOERLI]: [...WETH_ONLY[SupportedChainId.GOERLI], DAI_GOERLI, USDC, USDT, WBTC],
 }
 export const ADDITIONAL_BASES: { [chainId: number]: { [tokenAddress: string]: Token[] } } = {
   [SupportedChainId.MAINNET]: {
@@ -63,7 +66,7 @@ export const CUSTOM_BASES: { [chainId: number]: { [tokenAddress: string]: Token[
     [AMPL.address]: [DAI, WETH9_EXTENDED[SupportedChainId.LOCALHOST]],
   },
   [SupportedChainId.GOERLI]: {
-    [AMPL.address]: [DAI, WETH9_EXTENDED[SupportedChainId.GOERLI]],
+    [AMPL.address]: [DAI_GOERLI, WETH9_EXTENDED[SupportedChainId.GOERLI]],
   },
 }
 
@@ -87,7 +90,17 @@ export const COMMON_BASES: ChainCurrencyList = {
     ExtendedEther.onChain(SupportedChainId.RINKEBY),
     WETH9_EXTENDED[SupportedChainId.RINKEBY],
   ],
-  [SupportedChainId.GOERLI]: [ExtendedEther.onChain(SupportedChainId.GOERLI), WETH9_EXTENDED[SupportedChainId.GOERLI]],
+  [SupportedChainId.GOERLI]: [
+    ExtendedEther.onChain(SupportedChainId.GOERLI),
+    OHM,
+    OHM_GOERLI,
+    DAI_GOERLI,
+    DAI,
+    USDC,
+    USDT,
+    WBTC,
+    WETH9_EXTENDED[SupportedChainId.GOERLI],
+  ],
   [SupportedChainId.KOVAN]: [ExtendedEther.onChain(SupportedChainId.KOVAN), WETH9_EXTENDED[SupportedChainId.KOVAN]],
   [SupportedChainId.ARBITRUM_ONE]: [
     ExtendedEther.onChain(SupportedChainId.ARBITRUM_ONE),

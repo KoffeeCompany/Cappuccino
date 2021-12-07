@@ -22,7 +22,7 @@ import OptionsDetail from 'components/OptionsDetail'
 import { useActiveWeb3React } from 'hooks/web3'
 import { Option, OptionUI } from 'types/option'
 import { CHAIN_SUBGRAPH_URL, queryOption } from 'state/option/slice'
-import { OptionType } from 'state/data/generated'
+import { OptionType } from 'constants/optiontype'
 
 const DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 

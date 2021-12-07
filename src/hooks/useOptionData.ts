@@ -1,4 +1,4 @@
-import { AllOptionIntentionsQuery, OptionType, useAllOptionIntentionsQuery } from 'state/data/generated'
+import { AllOptionIntentionsQuery, useAllOptionIntentionsQuery } from 'state/data/generated'
 import ms from 'ms.macro'
 import { useMultipleContractSingleData } from 'state/multicall/hooks'
 import { useMemo } from 'react'
@@ -11,6 +11,7 @@ import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Pool, FeeAmount } from '@uniswap/v3-sdk'
 import { usePools } from './usePools'
 import { BigNumber, ethers } from 'ethers'
+import { OptionType } from 'constants/optiontype'
 
 const OPTION_INTERFACE = new Interface(IOptionABI) as OptionInterface
 

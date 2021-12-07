@@ -1,0 +1,22 @@
+{
+  "name": "Olympus Token List",
+  "timestamp": "2021-12-07T13:19:02.923Z",
+  "version": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "tags": {},
+  "logoURI": "",
+  "keywords": ["olympus", "cappuccino"],
+  "tokens": [
+    {
+      "name": "OHM",
+      "address": "0x6dD5840fce6b650Ff72A70957e47c0399F3998D0",
+      "symbol": "OHM",
+      "decimals": 9,
+      "chainId": 5,
+      "logoURI": ""
+    }
+  ]
+}
