@@ -3,6 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { SupportedChainId } from 'constants/chains'
 import { OptionType } from 'constants/optiontype'
 import request, { gql } from 'graphql-request'
+import { OptionPool } from 'state/data/generated'
 import { graphqlRequestOptionQuery } from 'state/global/graph'
 import {Option} from '../../types/option'
 
@@ -17,6 +18,10 @@ export const CHAIN_SUBGRAPH_URL: Record<number, string> = {
 
   [SupportedChainId.LOCALHOST]: 'http://localhost:8000/subgraphs/name/robusta/option',
   [SupportedChainId.GOERLI]: 'https://api.thegraph.com/subgraphs/name/gauddel/robusta-goerli',
+}
+
+export const OLYMPUS_CHAIN_SUBGRAPH_URL: Record<number, string> = {
+  [SupportedChainId.GOERLI]: 'https://api.thegraph.com/subgraphs/name/gauddel/cappuccino-subgraph',
 }
 
 export const api = createApi({
@@ -85,5 +90,29 @@ export async function queryOption(url: string, optionType: OptionType) : Promise
     skip: 0,
   }).then(data => {
     return data?.options as Option[]
+  })
+}
+
+const olympus_query = gql`
+  query allOptionPools($skip: Int!) {
+    optionPools(first: 1000, skip: $skip, orderBy: id) {
+      id
+      base
+      short
+      pool
+      optionType
+      liquidity
+      bcv
+      strike
+      maturity
+    }
+  }
+`
+
+export async function queryOlympusOption(url: string) : Promise<OptionPool[]> {
+  return await request(url, olympus_query, {
+    skip: 0,
+  }).then(data => {
+    return data?.optionPools as OptionPool[]
   })
 }
