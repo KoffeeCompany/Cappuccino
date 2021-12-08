@@ -8,7 +8,7 @@ import { TYPE } from 'theme'
 import { RowBetween, RowFixed } from 'components/Row'
 import CurrencyLogo from 'components/CurrencyLogo'
 import { unwrappedToken } from 'utils/unwrappedToken'
-import { Trans } from '@lingui/macro'
+import { t, Trans } from '@lingui/macro'
 import { Currency, Token } from '@uniswap/sdk-core'
 import DoubleCurrencyLogo from 'components/DoubleLogo'
 import { ThemeContext } from 'styled-components/macro'
@@ -26,6 +26,12 @@ import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { CAPPUCCINO_CONTRACT_ADDRESSES } from 'constants/addresses'
 import { useArgentWalletContract } from 'hooks/useArgentWalletContract'
 import { OptionType } from 'constants/optiontype'
+import { useOlympusOptionPoolContract } from 'hooks/useContract'
+import { DAI_GOERLI } from 'constants/tokens'
+import { parseUnits } from 'ethers/lib/utils'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { TransactionResponse } from '@ethersproject/providers'
+import { BigNumber } from 'ethers'
 
 export const SetNotional = ({
   token0,
@@ -37,6 +43,7 @@ export const SetNotional = ({
   bcv,
   maturity,
   optionType,
+  pool,
 }: {
   token0: Token
   token1: Token
@@ -47,10 +54,12 @@ export const SetNotional = ({
   bcv: number
   maturity?: Maturity
   optionType?: OptionType
+  pool?: string
 }) => {
   const theme = useContext(ThemeContext)
   const { account, chainId, library } = useActiveWeb3React()
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
+  const addTransaction = useTransactionAdder()
 
   const currency0 = unwrappedToken(token0!)
   const currency1 = unwrappedToken(token1!)
@@ -103,8 +112,66 @@ export const SetNotional = ({
   )
   const isValid = !errorMessage && notionalValue != ''
 
+  const [premium, setPremium] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currency1, 0))
+
+  const poolAddress: string | undefined = pool
+
+  const poolContract = useOlympusOptionPoolContract(poolAddress)
+
+  const [attempting, setAttempting] = useState(false)
+  const [hash, setHash] = useState<string | undefined>()
+
+  const notionalToSend = parseUnits(
+    notionalAmounts[Field.CURRENCY_B] ? notionalAmounts[Field.CURRENCY_B]!.toSignificant(6) : '0',
+    DAI_GOERLI.decimals
+  )
+
+  useEffect(() => {
+    async function getPrice() {
+      if (poolContract) {
+        await poolContract
+          .getPrice(notionalToSend, {
+            gasLimit: 3500000,
+          })
+          .then((response: TransactionResponse) => {
+            setPremium(CurrencyAmount.fromRawAmount(currency1, response.toString()))
+          })
+          .catch((error: any) => {
+            console.log(error)
+          })
+      }
+    }
+    getPrice()
+  }, [notionalValue])
+
+  const [approvalPool, approvePoolCallback] = useApproveCallback(premium, poolAddress)
+
+  async function onAttemptToApprove() {
+    await approvePoolCallback().then(async () => {
+      console.log('>>>>>>START BUY')
+      await onBuyOption()
+    })
+  }
+
   async function onBuyOption() {
-    //
+    if (poolContract) {
+      setAttempting(true)
+      await poolContract
+        .createOption(notionalToSend, {
+          gasLimit: 3500000,
+        })
+        .then((response: TransactionResponse) => {
+          addTransaction(response, {
+            summary: t`Buy option transaction`,
+          })
+          setHash(response.hash)
+          console.log(response.hash)
+        })
+        .catch((error: any) => {
+          setAttempting(false)
+          console.log(error)
+        })
+    }
   }
 
   const Buttons = () =>
@@ -137,7 +204,7 @@ export const SetNotional = ({
         <ButtonError
           style={{ borderRadius: '4px' }}
           onClick={() => {
-            onBuyOption()
+            onAttemptToApprove()
           }}
           disabled={!isValid || (!argentWalletContract && approvalB !== ApprovalState.APPROVED)}
           error={!isValid && !!notionalAmounts[Field.CURRENCY_B]}
@@ -178,11 +245,33 @@ export const SetNotional = ({
             currency={currencies[Field.CURRENCY_B]}
             id="notional-input-tokenaB"
             fiatValue={usdcNotionalValues[Field.CURRENCY_B]}
-            hideBalance={true}
             locked={false}
           />
         </AutoColumn>
       </DynamicSection>
+
+      <AutoColumn gap="md">
+        <RowBetween>
+          <TYPE.main>Premium</TYPE.main>
+        </RowBetween>
+
+        <RowBetween>
+          <LightCard>
+            <AutoColumn gap="md">
+              <RowBetween>
+                <RowFixed>
+                  <CurrencyLogo currency={premium.currency} />
+                  <TYPE.label ml="8px">{premium.currency?.symbol}</TYPE.label>
+                </RowFixed>
+                <RowFixed>
+                  <TYPE.label mr="8px">{premium.toSignificant(6)}</TYPE.label>
+                </RowFixed>
+              </RowBetween>
+            </AutoColumn>
+          </LightCard>
+        </RowBetween>
+      </AutoColumn>
+
       <AutoColumn gap="md">
         <RowBetween>
           <TYPE.main>Strike / Liquidity</TYPE.main>
@@ -240,9 +329,9 @@ export const SetNotional = ({
                   ? '24 hours'
                   : maturity === Maturity.SEVEN_DAYS
                   ? '7 days'
-                  : maturity === Maturity.ONE_MONTH
-                  ? '1 month'
-                  : '3 months'
+                  : maturity === Maturity.FIVE_DAYS
+                  ? '5 days'
+                  : '1 month'
               }`}</TYPE.mediumHeader>
             </AutoColumn>
           </LightCard>

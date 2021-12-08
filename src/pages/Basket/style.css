@@ -120,3 +120,8 @@
     background-color: #d32f2f !important;
     color: white !important;
 } 
+
+
+.MuiTablePagination-root {
+    display: none;
+}

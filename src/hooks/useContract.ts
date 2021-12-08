@@ -10,6 +10,7 @@ import { abi as IUniswapV2Router02ABI } from '@uniswap/v2-periphery/build/IUnisw
 import { abi as MulticallABI } from '@uniswap/v3-periphery/artifacts/contracts/lens/UniswapInterfaceMulticall.sol/UniswapInterfaceMulticall.json'
 import { abi as OPTION_ABI } from 'abis/option.json'
 import { abi as OLYMPUS_OPTION_ABI } from 'abis/olympus/cappuccino/OptionPoolFactoryMock.json'
+import { abi as OLYMPUS_POOL_OPTION_ABI } from 'abis/olympus/cappuccino/OptionMock.json'
 
 import ARGENT_WALLET_DETECTOR_ABI from 'abis/argent-wallet-detector.json'
 import ENS_PUBLIC_RESOLVER_ABI from 'abis/ens-public-resolver.json'
@@ -137,6 +138,10 @@ export function useOptionContract(optionAddress?: string, withSignerIfPossible?:
 
 export function useOlympusOptionContract(optionAddress?: string, withSignerIfPossible?: boolean) {
   return useContract(optionAddress, OLYMPUS_OPTION_ABI, withSignerIfPossible)
+}
+
+export function useOlympusOptionPoolContract(optionAddress?: string, withSignerIfPossible?: boolean) {
+  return useContract(optionAddress, OLYMPUS_POOL_OPTION_ABI, withSignerIfPossible)
 }
 
 export function useV3NFTPositionManagerContract(withSignerIfPossible?: boolean): NonfungiblePositionManager | null {

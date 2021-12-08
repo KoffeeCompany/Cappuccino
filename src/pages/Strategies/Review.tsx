@@ -17,6 +17,7 @@ export function Review({
   bcv,
   maturity,
   optionType,
+  pool,
 }: {
   token0: Token
   token1: Token
@@ -25,6 +26,7 @@ export function Review({
   bcv: number
   maturity?: Maturity
   optionType: OptionType
+  pool: string
 }) {
   return (
     <Wrapper>
@@ -38,6 +40,7 @@ export function Review({
           bcv={bcv}
           maturity={maturity}
           optionType={optionType}
+          pool={pool}
         />
       </AutoColumn>
     </Wrapper>

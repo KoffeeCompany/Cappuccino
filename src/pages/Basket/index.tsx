@@ -16,12 +16,17 @@ import { Maturity } from 'constants/maturity'
 import { TYPE } from 'theme'
 import { useGetOhmDaiPrice } from 'state/mint/v3/hooks'
 import { OptionType } from 'constants/optiontype'
+import { useOlympusOptionPoolContract } from 'hooks/useContract'
+import { TransactionResponse } from '@ethersproject/providers'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { useApproveCallback } from 'hooks/useApproveCallback'
 
 export default function Basket(history: any) {
   const theme = useContext(ThemeContext)
   const [showAddLiquidity, setShowAddLiquidity] = useState<boolean>(false)
   const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
   const [txHash, setTxHash] = useState<string>('')
+  const addTransaction = useTransactionAdder()
   const handleDismissConfirmation = useCallback(() => {
     setShowAddLiquidity(false)
     // if there was a tx hash, we want to clear the input
@@ -40,9 +45,49 @@ export default function Basket(history: any) {
   const [bcv, setBcv] = useState<number>(0)
   const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Call)
+  const [optionId, setOptionId] = useState('')
+  const [pool, setPool] = useState('')
+  const [notional, setNotional] = useState<CurrencyAmount<Currency>>(CurrencyAmount.fromRawAmount(currencyB, 0))
   //const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
   const bondPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '529010000000000000000')
-  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '542720000000000000000000000000')
+  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '542720000000000000000000000000000000000')
+
+  const [attempting, setAttempting] = useState(false)
+  const [hash, setHash] = useState<string | undefined>()
+
+  const poolAddress: string | undefined = pool != '' ? pool : undefined
+
+  const poolContract = useOlympusOptionPoolContract(poolAddress)
+
+  const [approvalPool, approvePoolCallback] = useApproveCallback(notional, poolAddress)
+
+  async function onAttemptToApprove() {
+    await approvePoolCallback().then(async () => {
+      console.log('>>>>>>START EXERCISE')
+      await onExerciseOption()
+    })
+  }
+
+  async function onExerciseOption() {
+    if (poolContract) {
+      setAttempting(true)
+      await poolContract
+        .exercise(optionId, {
+          gasLimit: 3500000,
+        })
+        .then((response: TransactionResponse) => {
+          addTransaction(response, {
+            summary: t`Exercise option transaction`,
+          })
+          setHash(response.hash)
+          console.log(response.hash)
+        })
+        .catch((error: any) => {
+          setAttempting(false)
+          console.log(error)
+        })
+    }
+  }
 
   return (
     <>
@@ -132,8 +177,12 @@ export default function Basket(history: any) {
                   setLiquidity(CurrencyAmount.fromRawAmount(currencyA, row.liquidity))
                   setStrike(CurrencyAmount.fromRawAmount(currencyB, row.strike))
                   setBcv(parseFloat(row.bcv))
-                  setMaturity(Maturity.FIVE_DAYS)
+                  setMaturity(row.initMaturity)
                   setOptionType(row.optionType.toUpperCase() == 'PUT' ? OptionType.Put : OptionType.Call)
+                  setOptionId(row.id)
+                  setPool(row.pool)
+                  setNotional(CurrencyAmount.fromRawAmount(currencyB, row.notional.toString()))
+                  onAttemptToApprove()
                 }}
               ></StickyHeadTable>
             </Grid>

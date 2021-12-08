@@ -55,10 +55,17 @@ export const DAI_GOERLI = new Token(
   'Dai stable coin'
 )
 
+// export const OHM_GOERLI = new Token(
+//   SupportedChainId.GOERLI,
+//   '0x6dD5840fce6b650Ff72A70957e47c0399F3998D0',
+//   9,
+//   'OHM',
+//   'Olympus'
+// )
 export const OHM_GOERLI = new Token(
   SupportedChainId.GOERLI,
-  '0x6dD5840fce6b650Ff72A70957e47c0399F3998D0',
-  9,
+  '0xAc976C05429d221Adf0eD7c3F0D63e8926a169DC',
+  18,
   'OHM',
   'Olympus'
 )

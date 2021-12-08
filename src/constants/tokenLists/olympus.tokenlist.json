@@ -17,6 +17,14 @@
       "decimals": 9,
       "chainId": 5,
       "logoURI": ""
+    },    
+    {
+      "name": "OHM",
+      "address": "0xAc976C05429d221Adf0eD7c3F0D63e8926a169DC",
+      "symbol": "OHM",
+      "decimals": 18,
+      "chainId": 5,
+      "logoURI": ""
     }
   ]
 }

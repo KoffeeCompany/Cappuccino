@@ -170,9 +170,9 @@ export const AddLiquidity = ({
                   ? '24 hours'
                   : maturity === Maturity.SEVEN_DAYS
                   ? '7 days'
-                  : maturity === Maturity.ONE_MONTH
-                  ? '1 month'
-                  : '3 months'
+                  : maturity === Maturity.FIVE_DAYS
+                  ? '5 days'
+                  : '1 month'
               }`}</TYPE.mediumHeader>
             </AutoColumn>
           </LightCard>

@@ -149,7 +149,7 @@ export default function CreateOption({
 
   // check whether the user has approved the router on the tokens
   const [approvalA, approveACallback] = useApproveCallback(
-    argentWalletContract ? undefined : parsedAmounts[Field.CURRENCY_A],
+    argentWalletContract ? undefined : liquidityAmounts[Field.CURRENCY_A],
     chainId ? CAPPUCCINO_CONTRACT_ADDRESSES[chainId] : undefined
   )
 
@@ -241,7 +241,7 @@ export default function CreateOption({
         )
         .then((response: TransactionResponse) => {
           addTransaction(response, {
-            summary: t`Create option transaction`,
+            summary: t`Create option pool transaction`,
           })
           setHash(response.hash)
           console.log(response.hash)
@@ -329,7 +329,7 @@ export default function CreateOption({
               />
             )}
             bottomContent={() => (
-              <ButtonPrimary style={{ marginTop: '1rem' }} onClick={onCreateOption}>
+              <ButtonPrimary style={{ marginTop: '1rem', borderRadius: '4px' }} onClick={onCreateOption}>
                 <Text fontWeight={500} fontSize={20}>
                   <Trans>Create</Trans>
                 </Text>

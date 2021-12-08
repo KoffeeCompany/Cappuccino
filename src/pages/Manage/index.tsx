@@ -46,8 +46,8 @@ export default function Manage(history: any) {
   const [bcv, setBcv] = useState<number>(0)
   const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
   //const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
-  const bondPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '529010000000000000000')
-  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '542720000000000000000000000000')
+  const bondPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '529010000000000000000000000000')
+  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '5427200000000000000000000000000000')
 
   async function onUpdateLiquidityOption() {
     //

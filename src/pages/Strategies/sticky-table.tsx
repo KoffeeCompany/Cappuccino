@@ -11,26 +11,34 @@ import { DataGrid, GridApi, GridCellValue, GridColDef, GridRowId, GridValueForma
 import { makeStyles } from '@material-ui/core'
 import { useActiveWeb3React } from 'hooks/web3'
 import { useWalletModalToggle } from 'state/application/hooks'
+import { OLYMPUS_CHAIN_SUBGRAPH_URL, queryOlympusOption } from 'state/option/slice'
+import { OptionPool } from 'state/data/generated'
+import { formatUnits } from 'ethers/lib/utils'
+import { DAI_GOERLI, OHM_GOERLI } from 'constants/tokens'
 
 function createData(
-  id: number,
+  id: string,
+  pool: string,
   optionType: string,
   currencyA: string,
   currencyB: string,
   liquidity: number,
   bcv: number,
   strike: number,
-  maturity: number
+  maturity: number,
+  initMaturity: number
 ) {
   const pair = currencyA + '/' + currencyB
   return {
     id: id,
+    pool: pool,
     optionType: optionType,
     pair: pair,
     liquidity: liquidity,
     bcv: bcv,
     strike: strike,
     maturity: maturity,
+    initMaturity: initMaturity,
   }
 }
 
@@ -72,7 +80,36 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   const { account, chainId, library } = useActiveWeb3React()
   const toggleWalletModal = useWalletModalToggle() // toggle wallet when disconnected
   const [darkMode, toggleDarkMode] = useDarkModeManager()
-  let row = 0
+  //let row = 0
+
+  const subgraphUrl = chainId ? OLYMPUS_CHAIN_SUBGRAPH_URL[chainId] : undefined
+
+  useEffect(() => {
+    if (!subgraphUrl) {
+      console.log(`Subgraph queries against ChainId ${chainId} are not supported.`)
+    } else {
+      queryOlympusOption(subgraphUrl).then((data) => {
+        const dataUI: OptionPool[] = []
+        data.map((item) => {
+          dataUI.push(
+            createData(
+              item.id,
+              item.pool ? item.pool : '',
+              item.optionType ? item.optionType : 'CALL',
+              OHM_GOERLI.symbol!,
+              DAI_GOERLI.symbol!,
+              parseFloat(formatUnits(item.liquidity, OHM_GOERLI.decimals)),
+              parseFloat(formatUnits(item.bcv, 18)),
+              parseFloat(formatUnits(item.strike, DAI_GOERLI.decimals)),
+              item.maturity,
+              item.maturity
+            )
+          )
+        })
+        setRows(dataUI)
+      })
+    }
+  }, [])
 
   const maturityCountdownTimer = (id: GridRowId, maturity: number) => {
     const timestamp = Date.now() / 1000
@@ -99,6 +136,8 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
   }
 
   const columns: GridColDef[] = [
+    { field: 'initMaturity', headerName: 'InitMaturity', hide: true },
+    { field: 'pool', headerName: 'Pool', hide: true },
     { field: 'optionType', headerName: 'Type' },
     { field: 'pair', headerName: 'Pair' },
     {
@@ -182,16 +221,16 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
     },
   ]
 
-  useEffect(() => {
-    const timestamp = Date.now() / 1000
-    setRows([
-      createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, Number(timestamp) + Maturity.FIVE_DAYS),
-      createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, Number(timestamp) + Maturity.FIVE_DAYS),
-      createData(row++, 'PUT', 'OHM', 'DAI', 130, 1.05, 690, Number(timestamp) + Maturity.FIVE_DAYS),
-      createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, Number(timestamp) + Maturity.FIVE_DAYS),
-      createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, Number(timestamp) + Maturity.SEVEN_DAYS),
-    ])
-  }, [])
+  // useEffect(() => {
+  //   const timestamp = Date.now() / 1000
+  //   setRows([
+  //     createData(row++, 'CALL', 'OHM', 'DAI', 100, 1.2, 600, Number(timestamp) + Maturity.FIVE_DAYS),
+  //     createData(row++, 'CALL', 'OHM', 'DAI', 400, 1.1, 720, Number(timestamp) + Maturity.FIVE_DAYS),
+  //     createData(row++, 'PUT', 'OHM', 'DAI', 130, 1.05, 690, Number(timestamp) + Maturity.FIVE_DAYS),
+  //     createData(row++, 'CALL', 'OHM', 'DAI', 200, 2, 680, Number(timestamp) + Maturity.FIVE_DAYS),
+  //     createData(row++, 'PUT', 'OHM', 'DAI', 300, 1.4, 700, Number(timestamp) + Maturity.SEVEN_DAYS),
+  //   ])
+  // }, [])
 
   const useStyle = makeStyles({
     grid: {
@@ -219,7 +258,7 @@ export default function StickyHeadTable({ onUserClick }: StickyHeadTableProps) {
 
   return (
     <div style={{ width: '1024px', backgroundColor: 'transparent', height: '500px' }}>
-      <DataGrid rows={rows} columns={columns} className={classes.grid} />
+      <DataGrid rows={rows} columns={columns} className={classes.grid} rowsPerPageOptions={[]} />
     </div>
   )
 }

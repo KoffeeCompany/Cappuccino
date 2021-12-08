@@ -44,9 +44,10 @@ export default function Strategies(history: any) {
   const [bcv, setBcv] = useState<number>(0)
   const [maturity, setMaturity] = useState<Maturity>(Maturity.FIVE_DAYS)
   const [optionType, setOptionType] = useState<OptionType>(OptionType.Call)
+  const [pool, setPool] = useState<string>('')
   //const { bondPrice, marketPrice } = useGetOhmDaiPrice(currencyA, currencyB)
   const bondPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '529010000000000000000')
-  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '542720000000000000000000000000')
+  const marketPrice = new Price<Currency, Currency>(currencyA, currencyB, 1, '542720000000000000000000000000000000000')
 
   return (
     <>
@@ -68,6 +69,7 @@ export default function Strategies(history: any) {
                 bcv={bcv}
                 maturity={maturity}
                 optionType={optionType}
+                pool={pool}
               />
             )}
             bottomContent={undefined}
@@ -161,8 +163,9 @@ export default function Strategies(history: any) {
                   setLiquidity(CurrencyAmount.fromRawAmount(currencyA, row.liquidity))
                   setStrike(CurrencyAmount.fromRawAmount(currencyB, row.strike))
                   setBcv(parseFloat(row.bcv))
-                  setMaturity(Maturity.FIVE_DAYS)
+                  setMaturity(row.initMaturity)
                   setOptionType(row.optionType.toUpperCase() == 'PUT' ? OptionType.Put : OptionType.Call)
+                  setPool(row.pool)
                   setShowAddLiquidity(true)
                 }}
               ></StickyHeadTable>

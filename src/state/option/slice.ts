@@ -116,3 +116,54 @@ export async function queryOlympusOption(url: string) : Promise<OptionPool[]> {
     return data?.optionPools as OptionPool[]
   })
 }
+
+
+const olympus_owner_query = gql`
+  query allOwnOptionPools($owner: String, $skip: Int!) {
+    options(first: 1000, where: { user: $owner }) {
+      id
+      status
+      pool
+      user
+      amountIn
+      amountOut
+    }
+  }
+`
+
+export async function queryOlympusMyOption(url: string, owner: string) : Promise<any[]> {
+  return await request(url, olympus_owner_query, {
+    owner: owner,
+    skip: 0,
+  }).then(data => {
+    return data?.options
+  })
+}
+
+
+const olympus_pool_query = gql`
+  query allOptionPoolsByPool($pool: String, $skip: Int!) {
+    optionPools(first: 1000, skip: $skip, where: { pool: $pool }, orderBy: id) {
+      id
+      base
+      short
+      pool
+      optionType
+      liquidity
+      bcv
+      strike
+      maturity
+    }
+  }
+`
+
+export async function queryOlympusOptionByPool(url: string, pool: string) : Promise<OptionPool[]> {
+  return await request(url, olympus_pool_query, {
+    pool: pool,
+    skip: 0,
+  }).then(data => {
+    return data?.optionPools as OptionPool[]
+  })
+}
+
+

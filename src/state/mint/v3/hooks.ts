@@ -219,7 +219,7 @@ export function useOlympusDerivedMintInfo(
   // always returns the price with 0 as base token
   //const {bondPrice, marketPrice} = useGetOhmDaiPrice(currencyA, currencyB)
   const bondPrice = new Price<Currency, Currency>(currencyA!, currencyB!, 1, '529010000000000000000')
-  const marketPrice = new Price<Currency, Currency>(currencyA!, currencyB!, 1, '542720000000000000000000000000')
+  const marketPrice = new Price<Currency, Currency>(currencyA!, currencyB!, 1, '542720000000000000000000000000000000000')
   
   // amounts
   const independentAmount: CurrencyAmount<Currency> | undefined = tryParseAmount(
